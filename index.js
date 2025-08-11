@@ -14,7 +14,8 @@ const path = require('path');
 require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
-const PREFIX = '!';
+// default prefix
+let PREFIX = '!';
 
 // --- Express setup ---
 const app = express();
@@ -79,6 +80,17 @@ client.on('guildMemberAdd', member => {
 // Message commands handler
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
+
+  // PREFIX CHANGE COMMAND
+  if (message.content.startsWith(`${PREFIX}setprefix`)) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+      return message.reply('❌ You do not have permission to change the prefix.');
+    }
+    const args = message.content.split(/\s+/);
+    if (!args[1]) return message.reply('❌ Please provide a new prefix.');
+    PREFIX = args[1];
+    return message.channel.send(`✅ Prefix has been changed to \`${PREFIX}\``);
+  }
 
   // HELP COMMAND
   if (message.content === `${PREFIX}help`) {
@@ -193,7 +205,7 @@ client.on('messageCreate', async (message) => {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#2CFF05').setDescription('<:t_:1404452236637114429> Deleted up to 100 recent messages.')] });
+        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#2CFF05').setDescription('<:Tick:1404464712262881420> Deleted up to 100 recent messages.')] });
         setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
       } catch (error) {
         console.error(error);
@@ -207,7 +219,7 @@ client.on('messageCreate', async (message) => {
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#2CFF05').setDescription(`<:t_:1404452236637114429> Deleted **${amount}** messages.`)] });
+      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#2CFF05').setDescription(`<:Tick:1404464712262881420> Deleted **${amount}** messages.`)] });
       setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
     } catch (error) {
       console.error(error);
@@ -334,7 +346,7 @@ client.on('interactionCreate', async interaction => {
       await channel.clone();
       const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
       await channel.delete();
-      return interaction.reply({ content: `<:t_:1404452236637114429> Channel nuked and recreated: ${newChannel}`, ephemeral: true });
+      return interaction.reply({ content: `<:Tick:1404464712262881420> Channel nuked and recreated: ${newChannel}`, ephemeral: true });
     } catch (error) {
       console.error(error);
       return interaction.reply({ content: '❌ Failed to nuke the channel.', ephemeral: true });
@@ -345,7 +357,7 @@ client.on('interactionCreate', async interaction => {
     if (interaction.message.deletable) {
       await interaction.message.delete();
     }
-    return interaction.reply({ content: '❌ Nuke cancelled.', ephemeral: true });
+    return interaction.reply({ content: '<:Tick:1404464712262881420> Nuke cancelled.', ephemeral: true });
   }
 });
 
