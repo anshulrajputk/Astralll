@@ -108,7 +108,7 @@ client.on('messageCreate', async (message) => {
         '🎉 : Giveaways\n' +
         '🎫 : Ticket'
       )
-      .setImage('https://cdn.discordapp.com/attachments/1399652585622999080/1403998391825862747/standard.gif')
+      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif?ex=689b0de0&is=6899bc60&hm=c807aef0e6c1c1141b317798c1c83c7862068281bdf407a5604dd3747756fb54&')
       .setFooter({
         text: `AstralX • Loved by ${client.guilds.cache.size} Servers • Requested by ${message.author.username}`,
         iconURL: message.author.displayAvatarURL({ dynamic: true })
@@ -145,8 +145,8 @@ client.on('messageCreate', async (message) => {
     const embed = new EmbedBuilder()
       .setColor('#00faff')
       .setTitle('Owner Info')
-      .setDescription('My Owner Is GodSpiderz')
-      .setImage('https://cdn.discordapp.com/attachments/1399652585622999080/1403998391825862747/standard.gif')
+      .setDescription('**My Owner Is** **__GodSpiderz__**')
+      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif?ex=689b1180&is=6899c000&hm=25b0b7a180931ebceec06b64e04adb3caf7bc51d3d9bfb45ee66e2a7b9c3faa4&')
       .setFooter({
         text: `Requested by ${message.author.username}`,
         iconURL: message.author.displayAvatarURL({ dynamic: true })
@@ -340,3 +340,4 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(TOKEN);
+
