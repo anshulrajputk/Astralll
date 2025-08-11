@@ -6,7 +6,8 @@ const {
   StringSelectMenuBuilder,
   ButtonBuilder,
   ButtonStyle,
-  PermissionsBitField
+  PermissionsBitField,
+  SlashCommandBuilder,
 } = require('discord.js');
 
 const express = require('express');
@@ -48,6 +49,11 @@ setInterval(() => {
   }).on('error', (err) => console.log('Keep-alive error:', err.message));
 }, 5 * 60 * 1000);
 
+// In-memory emoji store (starts with your Tick emoji)
+const emojis = {
+  tick: '<:Tick:1404464712262881420>',
+};
+
 // --- Discord Bot setup ---
 const client = new Client({
   intents: [
@@ -59,8 +65,32 @@ const client = new Client({
   ]
 });
 
-client.once('ready', () => {
+client.once('ready', async () => {
   console.log(`${client.user.tag} is online!`);
+
+  // Register slash commands for emoji management
+  const commands = [
+    new SlashCommandBuilder()
+      .setName('emoji')
+      .setDescription('Manage emojis')
+      .addSubcommand(subcommand =>
+        subcommand
+          .setName('add')
+          .setDescription('Add or update one emoji')
+          .addStringOption(opt => opt.setName('name').setDescription('Emoji name').setRequired(true))
+          .addStringOption(opt => opt.setName('emoji').setDescription('Emoji string').setRequired(true))
+      )
+      .addSubcommand(subcommand =>
+        subcommand
+          .setName('addmany')
+          .setDescription('Add or update multiple emojis (JSON format)')
+          .addStringOption(opt => opt.setName('emojis').setDescription('JSON object string').setRequired(true))
+      )
+      .toJSON(),
+  ];
+
+  await client.application.commands.set(commands);
+  console.log('Slash commands registered.');
 });
 
 // Welcome message when a member joins
@@ -89,7 +119,7 @@ client.on('messageCreate', async (message) => {
     const args = message.content.split(/\s+/);
     if (!args[1]) return message.reply('❌ Please provide a new prefix.');
     PREFIX = args[1];
-    return message.channel.send(`✅ Prefix has been changed to \`${PREFIX}\``);
+    return message.channel.send(`\<:Tick:1404464712262881420> Prefix has been changed to \`${PREFIX}\``);
   }
 
   // HELP COMMAND
@@ -332,8 +362,50 @@ client.on('interactionCreate', async interaction => {
   if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'help-category') {
       await interaction.reply({ content: `You selected: ${interaction.values[0]}`, ephemeral: true });
+      return;
     }
   }
+
+  if (interaction.isCommand()) {
+    const { commandName } = interaction;
+
+    if (commandName === 'emoji') {
+      const subcommand = interaction.options.getSubcommand();
+
+      if (subcommand === 'add') {
+        const name = interaction.options.getString('name').toLowerCase();
+        const emoji = interaction.options.getString('emoji');
+
+        emojis[name] = emoji;
+        await interaction.reply({ content: `<:Tick:1404464712262881420> Emoji **${name}** has been added/updated to: ${emoji}`, ephemeral: true });
+        return;
+      } else if (subcommand === 'addmany') {
+        const jsonString = interaction.options.getString('emojis');
+
+        let newEmojis;
+        try {
+          newEmojis = JSON.parse(jsonString);
+          if (typeof newEmojis !== 'object' || Array.isArray(newEmojis)) {
+            throw new Error('Not a valid JSON object');
+          }
+        } catch (error) {
+          return interaction.reply({ content: '❌ Invalid JSON string provided.', ephemeral: true });
+        }
+
+        let addedCount = 0;
+        for (const [key, value] of Object.entries(newEmojis)) {
+          emojis[key.toLowerCase()] = value;
+          addedCount++;
+        }
+
+        await interaction.reply({ content: `<:Tick:1404464712262881420> Added/updated **${addedCount}** emojis successfully.`, ephemeral: true });
+        return;
+      }
+    }
+
+    // Add other slash commands here if needed
+  }
+
   if (!interaction.isButton()) return;
 
   if (interaction.customId === 'nuke_confirm') {
