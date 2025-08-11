@@ -107,9 +107,9 @@ client.on('messageCreate', async (message) => {
         `> <:autorole:1404442940243181668> \`:\` **Role**\n` +
         `> <:utility:1404441956037165147> \`:\` **Utility**\n` +
         `> <:volup:1404443196519612559> \`:\` **Voice**\n` +
-        `> <:welcome:1404443195856650281> \`:\` **Welcome**\n`
+        `> <:welcome:1404443195856650281> \`:\` **Welcome**\n` +
         `> <:giveaway:1404420200371191828> \`:\` **Giveaway**\n` +
-        `> <:ticket:1404420115008851999> \`:\` **Ticket**`
+        `> <:ticket:1404420115008851999> \`:\` **Ticket**` 
       )
       .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
@@ -344,5 +344,6 @@ client.login(TOKEN);
 
 
                                                                               
+
 
 
