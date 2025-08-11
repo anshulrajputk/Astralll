@@ -94,7 +94,6 @@ client.on('messageCreate', async (message) => {
         `• **Server Prefix:** \`${PREFIX}\`\n` +
         `• Command Type: Works with both Prefix & Slash\n\n` +
         <:head:1368557621547896882> **__My Commands:__**
-
 > <:antinuke:1395712971354804266> `:` **Antinuke**
 > <:automod:1368545884136013824> `:` **Automod**
 > <:utility:1369525259098656809> `:` **Config**
@@ -401,5 +400,6 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.login(TOKEN);
+
 
 
