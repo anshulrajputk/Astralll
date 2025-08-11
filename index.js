@@ -95,25 +95,23 @@ client.on('messageCreate', async (message) => {
         `• Command Type: Works with both Prefix & Slash\n\n` +
         <:head:1368557621547896882> **__My Commands:__**
 
-> <:antinuke:1395712971354804266>  : **Antinuke**
-> <:automod:1368545884136013824>   : **Automod**
-> <:utility:1369525259098656809>   : **Config**
-> <:extra:1395706131682164927>     : **Extra**
-> <:dumb:1368548200532938793>      : **Fun**
-> <:info:1368557726447439983>      : **Information**
-> <:moderation:1369523757055479818>: **Moderation**
-> <:music:1369523861107769364>     : **Music**
-> <:pfp:1395711262821978202>       : **Pfps**
-> <:playlist:1369524616288014346>  : **Playlists**
-> <:autorole:1368545900917424259>  : **Profile**
-> <:autorole:1368545900917424259>  : **Role**
-> <:utility:1369525259098656809>   : **Utility**
-> <:volup:1369525408353222767>     : **Voice**
-> <:welcome:1369525441135771669>   : **Welcome**
-> <:giveaway:1404420200371191828>  : **Giveaway**
-> <:ticket:1404420115008851999>    : **Ticket**
-        
-      )
+> <:antinuke:1395712971354804266> `:` **Antinuke**
+> <:automod:1368545884136013824> `:` **Automod**
+> <:utility:1369525259098656809> `:` **Config**
+> <:extra:1395706131682164927> `:` **Extra**
+> <:dumb:1368548200532938793> `:` **Fun**
+> <:info:1368557726447439983> `:` **Information**
+> <:moderation:1369523757055479818> `:` **Moderation**
+> <:music:1369523861107769364> `:` **Music**
+> <:playlist:1369524616288014346> `:` **Playlists**
+> <:autorole:1368545900917424259> `:` **Profile**
+> <:autorole:1368545900917424259> `:` **Role**
+> <:utility:1369525259098656809> `:` **Utility**
+> <:volup:1369525408353222767> `:` **Voice**
+> <:welcome:1369525441135771669> `:` **Welcome**
+> <:giveaway:1404420200371191828> `:` **Giveaway**
+> <:ticket:1404420115008851999> `:` **Ticket**
+        )
       .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
@@ -403,4 +401,5 @@ client.on('interactionCreate', async (interaction) => {
 });
 
 client.login(TOKEN);
+
 
