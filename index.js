@@ -20,7 +20,7 @@ const PREFIX = '!';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve dashboard static files (if you have any)
+// Serve dashboard static files (if any)
 app.use(express.static(path.join(__dirname, 'dashboard')));
 
 // Middleware to parse JSON body
@@ -30,7 +30,6 @@ app.use(express.json());
 let welcomeSettings = {
   title: 'Welcome to the server!',
   description: 'Have a great time here!',
-  // Add other fields as needed
 };
 
 // API endpoints for dashboard
@@ -39,7 +38,6 @@ app.get('/api/welcome', (req, res) => {
 });
 
 app.post('/api/welcome', (req, res) => {
-  // TODO: Add validation if you want
   welcomeSettings = req.body;
   res.json({ status: 'success', data: welcomeSettings });
 });
@@ -61,7 +59,7 @@ setInterval(() => {
   }).on('error', (err) => {
     console.log('Keep-alive error:', err.message);
   });
-}, 5 * 60 * 1000); // Ping every 5 minutes
+}, 5 * 60 * 1000); // every 5 minutes
 
 // --- Discord Bot setup ---
 const client = new Client({
@@ -107,47 +105,47 @@ client.on('messageCreate', async (message) => {
       .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
       .setTitle('Prefix & Slash Commands Info')
       .setDescription(
-        `â€¢ **Server Prefix:** \`${PREFIX}\`\n` +
-        `â€¢ **Command Type:** Works with both **Prefix & Slash**\n\n` +
+        `• **Server Prefix:** \`${PREFIX}\`\n` +
+        `• **Command Type:** Works with both **Prefix & Slash**\n\n` +
         `**My Commands:**\n` +
-        'ðŸ›¡ï¸ : Antinuke\n' +
-        'ðŸ›¡ï¸ : Automod\n' +
-        'âš™ï¸ : Config\n' +
-        'ðŸ“‚ : Extra\n' +
-        'ðŸ˜„ : Fun\n' +
-        'â„¹ï¸ : Information\n' +
-        'ðŸ”¨ : Moderation\n' +
-        'ðŸŽµ : Music\n' +
-        'ðŸ‘¤ : Profile\n' +
-        'ðŸŽ­ : Role\n' +
-        'ðŸ”§ : Utility\n' +
-        'ðŸŽ™ï¸ : Voice\n' +
-        'ðŸ‘‹ : Welcome'
+        '🛡️ : Antinuke\n' +
+        '🛡️ : Automod\n' +
+        '⚙️ : Config\n' +
+        '📂 : Extra\n' +
+        '😄 : Fun\n' +
+        'ℹ️ : Information\n' +
+        '🔨 : Moderation\n' +
+        '🎵 : Music\n' +
+        '👤 : Profile\n' +
+        '🎭 : Role\n' +
+        '🔧 : Utility\n' +
+        '🎙️ : Voice\n' +
+        '👋 : Welcome'
       )
       .setImage('https://cdn.discordapp.com/attachments/1399652585622999080/1403998391825862747/standard.gif')
       .setFooter({
-        text: `AstralX â€¢ Loved by ${client.guilds.cache.size} Servers â€¢ Requested by ${message.author.username}`,
+        text: `AstralX • Loved by ${client.guilds.cache.size} Servers • Requested by ${message.author.username}`,
         iconURL: message.author.displayAvatarURL({ dynamic: true })
       });
 
     const row = new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId('help-category')
-        .setPlaceholder('ðŸ“‚ Select a Command Category')
+        .setPlaceholder('📂 Select a Command Category')
         .addOptions([
-          { label: 'Antinuke', value: 'antinuke', emoji: 'ðŸ›¡ï¸' },
-          { label: 'Automod', value: 'automod', emoji: 'ðŸ›¡ï¸' },
-          { label: 'Config', value: 'config', emoji: 'âš™ï¸' },
-          { label: 'Extra', value: 'extra', emoji: 'ðŸ“‚' },
-          { label: 'Fun', value: 'fun', emoji: 'ðŸ˜„' },
-          { label: 'Information', value: 'information', emoji: 'â„¹ï¸' },
-          { label: 'Moderation', value: 'moderation', emoji: 'ðŸ”¨' },
-          { label: 'Music', value: 'music', emoji: 'ðŸŽµ' },
-          { label: 'Profile', value: 'profile', emoji: 'ðŸ‘¤' },
-          { label: 'Role', value: 'role', emoji: 'ðŸŽ­' },
-          { label: 'Utility', value: 'utility', emoji: 'ðŸ”§' },
-          { label: 'Voice', value: 'voice', emoji: 'ðŸŽ™ï¸' },
-          { label: 'Welcome', value: 'welcome', emoji: 'ðŸ‘‹' }
+          { label: 'Antinuke', value: 'antinuke', emoji: '🛡️' },
+          { label: 'Automod', value: 'automod', emoji: '🛡️' },
+          { label: 'Config', value: 'config', emoji: '⚙️' },
+          { label: 'Extra', value: 'extra', emoji: '📂' },
+          { label: 'Fun', value: 'fun', emoji: '😄' },
+          { label: 'Information', value: 'information', emoji: 'ℹ️' },
+          { label: 'Moderation', value: 'moderation', emoji: '🔨' },
+          { label: 'Music', value: 'music', emoji: '🎵' },
+          { label: 'Profile', value: 'profile', emoji: '👤' },
+          { label: 'Role', value: 'role', emoji: '🎭' },
+          { label: 'Utility', value: 'utility', emoji: '🔧' },
+          { label: 'Voice', value: 'voice', emoji: '🎙️' },
+          { label: 'Welcome', value: 'welcome', emoji: '👋' }
         ])
     );
 
@@ -200,42 +198,42 @@ client.on('messageCreate', async (message) => {
   // PURGE COMMAND
   else if (message.content.startsWith(`${PREFIX}purge`)) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
-      return message.reply({ content: 'âŒ You do not have permission to manage messages.', allowedMentions: { repliedUser: false } });
+      return message.reply({ content: '❌ You do not have permission to manage messages.', allowedMentions: { repliedUser: false } });
 
     const args = message.content.split(/\s+/);
-    if (!args[1]) return message.reply({ content: 'âŒ Please specify amount or "all".', allowedMentions: { repliedUser: false } });
+    if (!args[1]) return message.reply({ content: '❌ Please specify amount or "all".', allowedMentions: { repliedUser: false } });
 
     if (args[1].toLowerCase() === 'all') {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor(0x00AE86).setDescription('ðŸ§¹ Deleted up to 100 recent messages.')] });
-        setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
+        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor(0x00AE86).setDescription('🧹 Deleted up to 100 recent messages.')] });
+        setTimeout(() => confirmMsg.delete().catch(() => {}), 5000);
       } catch {
-        message.channel.send({ content: 'âŒ Failed to delete messages.', allowedMentions: { repliedUser: false } });
+        message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
       }
       return;
     }
 
     const amount = parseInt(args[1]);
-    if (isNaN(amount) || amount < 1 || amount > 100) return message.reply({ content: 'âŒ Please provide an amount between 1 and 100 or "all".', allowedMentions: { repliedUser: false } });
+    if (isNaN(amount) || amount < 1 || amount > 100) return message.reply({ content: '❌ Please provide an amount between 1 and 100 or "all".', allowedMentions: { repliedUser: false } });
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor(0x00AE86).setDescription(`ðŸ§¹ Deleted **${amount}** messages.`)] });
-      setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
+      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor(0x00AE86).setDescription(`🧹 Deleted **${amount}** messages.`)] });
+      setTimeout(() => confirmMsg.delete().catch(() => {}), 5000);
     } catch {
-      message.channel.send({ content: 'âŒ Failed to delete messages.', allowedMentions: { repliedUser: false } });
+      message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
     }
   }
 
   // NUKE COMMAND
   else if (message.content === `${PREFIX}nuke`) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
-      return message.reply({ content: 'âŒ You do not have permission to manage channels.', allowedMentions: { repliedUser: false } });
+      return message.reply({ content: '❌ You do not have permission to manage channels.', allowedMentions: { repliedUser: false } });
 
     const embed = new EmbedBuilder()
-      .setTitle('âš ï¸ Confirm Channel Nuke')
+      .setTitle('⚠️ Confirm Channel Nuke')
       .setDescription('Are you sure you want to nuke this channel? All messages will be deleted!')
       .setColor(0xFF0000);
 
@@ -296,21 +294,21 @@ client.on('messageCreate', async (message) => {
   // ROLE COMMAND
   else if (message.content.startsWith(`${PREFIX}role`)) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles))
-      return message.reply({ content: 'âŒ You do not have permission to manage roles.', allowedMentions: { repliedUser: false } });
+      return message.reply({ content: '❌ You do not have permission to manage roles.', allowedMentions: { repliedUser: false } });
 
     const args = message.content.split(/\s+/);
     const member = message.mentions.members.first();
     const role = message.mentions.roles.first();
 
-    if (!member) return message.reply({ content: 'âŒ Please mention a member to assign a role.', allowedMentions: { repliedUser: false } });
-    if (!role) return message.reply({ content: 'âŒ Please mention a role to assign.', allowedMentions: { repliedUser: false } });
+    if (!member) return message.reply({ content: '❌ Please mention a member to assign a role.', allowedMentions: { repliedUser: false } });
+    if (!role) return message.reply({ content: '❌ Please mention a role to assign.', allowedMentions: { repliedUser: false } });
 
     if (role.position >= message.guild.members.me.roles.highest.position) {
-      return message.reply({ content: 'âŒ I cannot assign that role because it is higher or equal to my highest role.', allowedMentions: { repliedUser: false } });
+      return message.reply({ content: '❌ I cannot assign that role because it is higher or equal to my highest role.', allowedMentions: { repliedUser: false } });
     }
 
     if (message.member.roles.highest.position <= role.position) {
-      return message.reply({ content: 'âŒ You cannot assign a role higher or equal to your highest role.', allowedMentions: { repliedUser: false } });
+      return message.reply({ content: '❌ You cannot assign a role higher or equal to your highest role.', allowedMentions: { repliedUser: false } });
     }
 
     try {
@@ -322,7 +320,7 @@ client.on('messageCreate', async (message) => {
         .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
       return message.channel.send({ embeds: [embed] });
     } catch {
-      return message.reply({ content: 'âŒ Failed to assign role.', allowedMentions: { repliedUser: false } });
+      return message.reply({ content: '❌ Failed to assign role.', allowedMentions: { repliedUser: false } });
     }
   }
 });
@@ -333,7 +331,7 @@ client.on('interactionCreate', async interaction => {
 
   if (interaction.customId === 'nuke_confirm') {
     if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
-      return interaction.reply({ content: 'âŒ You do not have permission to manage channels.', ephemeral: true });
+      return interaction.reply({ content: '❌ You do not have permission to manage channels.', ephemeral: true });
     }
 
     try {
@@ -341,9 +339,9 @@ client.on('interactionCreate', async interaction => {
       await channel.clone();
       const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
       await channel.delete();
-      return interaction.reply({ content: `ðŸ’¥ Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
+      return interaction.reply({ content: `💥 Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
     } catch {
-      return interaction.reply({ content: 'âŒ Failed to nuke the channel.', ephemeral: true });
+      return interaction.reply({ content: '❌ Failed to nuke the channel.', ephemeral: true });
     }
   }
 
@@ -351,7 +349,7 @@ client.on('interactionCreate', async interaction => {
     if (interaction.message.deletable) {
       await interaction.message.delete();
     }
-    return interaction.reply({ content: 'âŒ Nuke cancelled.', ephemeral: true });
+    return interaction.reply({ content: '❌ Nuke cancelled.', ephemeral: true });
   }
 });
 
