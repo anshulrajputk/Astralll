@@ -1,466 +1,358 @@
-/**
- * Minecraft Server Status Bot
- * Created by Team BLK
- * 
- * YouTube: https://www.youtube.com/@team_blk_official
- * Discord: adithyadev.blk
- * GitHub: https://github.com/BLKOFFICIAL
- */
+const { 
+  Client, 
+  GatewayIntentBits, 
+  EmbedBuilder, 
+  ActionRowBuilder, 
+  StringSelectMenuBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  PermissionsBitField
+} = require('discord.js');
 
-require('dotenv').config();
-const { Client, GatewayIntentBits, EmbedBuilder, ActivityType, AttachmentBuilder } = require('discord.js');
-const util = require('minecraft-server-util');
-const config = require('./config.json');
 const express = require('express');
-const chalk = require('chalk');
-const { createCanvas } = require('canvas');
-const { Chart } = require('chart.js/auto');
-const fs = require('fs');
 const path = require('path');
+require('dotenv').config();
+
+const TOKEN = process.env.TOKEN;
+const PREFIX = '!';
+
+// --- Express setup ---
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-// Initialize Discord client with intents
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-    ]
-});
+// Serve dashboard static files (if you have any)
+app.use(express.static(path.join(__dirname, 'dashboard')));
 
-// Store server status messages and intervals
-const statusMessages = new Map();
-const updateIntervals = new Map();
-const playerHistory = new Map(); // Store player count history
+// Middleware to parse JSON body
+app.use(express.json());
 
-// Fancy console logging
-const log = {
-    info: (msg) => console.log(chalk.blue('ℹ️ [INFO]'), msg),
-    success: (msg) => console.log(chalk.green('✅ [SUCCESS]'), msg),
-    error: (msg) => console.log(chalk.red('❌ [ERROR]'), msg),
-    warn: (msg) => console.log(chalk.yellow('⚠️ [WARN]'), msg)
+// In-memory welcome settings (default)
+let welcomeSettings = {
+  title: 'Welcome to the server!',
+  description: 'Have a great time here!',
+  // Add other fields as needed
 };
 
-// Save message ID to config
-function saveMessageId(channelId, messageId) {
-    const server = config.minecraft.servers.find(s => s.channelId === channelId);
-    if (server) {
-        server.messageId = messageId;
-        fs.writeFileSync('./config.json', JSON.stringify(config, null, 4));
-        log.info(`Saved message ID ${messageId} for channel ${channelId}`);
-    }
-}
-
-// Clean up old messages
-async function cleanupOldMessages(channel) {
-    try {
-        const messages = await channel.messages.fetch({ limit: 2 });
-        await channel.bulkDelete(messages);
-        log.info(`Cleaned up old messages in channel ${channel.id}`);
-    } catch (error) {
-        log.error(`Failed to cleanup messages in channel ${channel.id}: ${error.message}`);
-    }
-}
-
-// Initialize player history for a server
-function initializePlayerHistory(serverId) {
-    if (!playerHistory.has(serverId)) {
-        playerHistory.set(serverId, []);
-    }
-}
-
-// Add player count to history
-function updatePlayerHistory(serverId, playerCount, maxHistory = 24) {
-    const history = playerHistory.get(serverId) || [];
-    const currentTime = Date.now();
-    
-    // If history is empty or it's been 5 minutes since last record
-    // This will create more frequent records initially until we have enough data
-    const timeBetweenRecords = history.length < 24 ? 300000 : 3600000; // 5 minutes or 1 hour
-    
-    if (history.length === 0 || 
-        (currentTime - history[history.length - 1].timestamp) >= timeBetweenRecords) {
-        history.push({
-            timestamp: currentTime,
-            count: playerCount
-        });
-
-        // Keep only last 24 records
-        if (history.length > maxHistory) {
-            history.shift(); // Remove oldest record
-        }
-
-        playerHistory.set(serverId, history);
-        log.info(`Updated player history for ${serverId} (${history.length} records)`);
-    } else {
-        // Update the latest record
-        history[history.length - 1].count = playerCount;
-        playerHistory.set(serverId, history);
-    }
-}
-
-// Generate player count chart
-async function generatePlayerChart(serverId, color = '#3498db') {
-    const history = playerHistory.get(serverId) || [];
-    if (history.length < 2) {
-        log.warn(`Not enough history data for chart (${history.length} records)`);
-        return null;
-    }
-
-    const width = 800;
-    const height = 400;
-    const canvas = createCanvas(width, height);
-    const ctx = canvas.getContext('2d');
-
-    // Set background
-    ctx.fillStyle = '#2F3136';
-    ctx.fillRect(0, 0, width, height);
-
-    const labels = history.map(entry => {
-        const date = new Date(entry.timestamp);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    });
-
-    const data = history.map(entry => entry.count);
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels,
-            datasets: [{
-                label: 'Player Count',
-                data,
-                borderColor: color,
-                backgroundColor: color + '33', // Add transparency
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: false,
-            animation: false, // Disable animations for static image
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#FFFFFF',
-                        font: {
-                            size: 14
-                        }
-                    }
-                },
-                title: {
-                    display: true,
-                    text: 'Player Count History',
-                    color: '#FFFFFF',
-                    font: {
-                        size: 16,
-                        weight: 'bold'
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: {
-                        color: '#666666',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#FFFFFF',
-                        font: {
-                            size: 12
-                        },
-                        padding: 10
-                    }
-                },
-                x: {
-                    grid: {
-                        color: '#666666',
-                        drawBorder: false
-                    },
-                    ticks: {
-                        color: '#FFFFFF',
-                        font: {
-                            size: 12
-                        },
-                        maxRotation: 45,
-                        minRotation: 45
-                    }
-                }
-            },
-            layout: {
-                padding: 20
-            }
-        }
-    });
-
-    return canvas.toBuffer('image/png');
-}
-
-// Bot ready event
-client.once('ready', () => {
-    log.success(`Logged in as ${client.user.tag}`);
-    
-    // Set custom presence from config
-    const presence = config.bot.presence;
-    client.user.setPresence({
-        status: presence.status,
-        activities: presence.activities.map(activity => ({
-            name: activity.name,
-            type: ActivityType[activity.type]
-        }))
-    });
-
-    // Initialize status updates for all configured servers
-    initializeStatusUpdates();
+// API endpoints for dashboard
+app.get('/api/welcome', (req, res) => {
+  res.json(welcomeSettings);
 });
 
-async function checkServerStatus(ip, port = 25565) {
-    try {
-        const result = await util.status(ip, port);
-        return {
-            online: true,
-            players: result.players.online,
-            maxPlayers: result.players.max,
-            version: result.version.name,
-            description: result.motd.clean,
-            ping: result.roundTripLatency
-        };
-    } catch (error) {
-        log.error(`Failed to check status for ${ip}:${port} - ${error.message}`);
-        return {
-            online: false,
-            error: error.message
-        };
-    }
-}
+app.post('/api/welcome', (req, res) => {
+  // TODO: Add validation if you want
+  welcomeSettings = req.body;
+  res.json({ status: 'success', data: welcomeSettings });
+});
 
-async function updateServerStatus(serverConfig) {
-    const channel = await client.channels.fetch(serverConfig.channelId).catch(() => null);
-    if (!channel) {
-        log.error(`Channel ${serverConfig.channelId} not found for server ${serverConfig.name}`);
-        return;
-    }
+// Basic healthcheck route
+app.get('/', (req, res) => {
+  res.send('Bot is alive!');
+});
 
-    const status = await checkServerStatus(serverConfig.ip, serverConfig.port);
-    
-    // Update player history if server is online
-    if (status.online) {
-        initializePlayerHistory(serverConfig.channelId);
-        updatePlayerHistory(serverConfig.channelId, status.players, serverConfig.display.chart.historyHours);
-    }
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Webserver running on port ${PORT}`);
+});
 
+// Keep-alive function to prevent the bot from sleeping
+setInterval(() => {
+  const http = require('http');
+  http.get(`http://localhost:${PORT}/`, (res) => {
+    console.log('Keep-alive ping sent');
+  }).on('error', (err) => {
+    console.log('Keep-alive error:', err.message);
+  });
+}, 5 * 60 * 1000); // Ping every 5 minutes
+
+// --- Discord Bot setup ---
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildPresences
+  ]
+});
+
+client.once('ready', () => {
+  console.log(`${client.user.tag} is online!`);
+});
+
+// Welcome new members with dynamic embed using welcomeSettings
+client.on('guildMemberAdd', member => {
+  const channel = member.guild.systemChannel;
+  if (!channel) return;
+
+  const embed = new EmbedBuilder()
+    .setTitle(welcomeSettings.title)
+    .setDescription(welcomeSettings.description)
+    .setColor(0xff0000)
+    .setTimestamp();
+
+  channel.send({ embeds: [embed] });
+});
+
+// Message commands handler
+client.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
+
+  // HELP COMMAND
+  if (message.content === `${PREFIX}help`) {
     const embed = new EmbedBuilder()
-        .setTitle(config.embed.title)
-        .setColor(status.online ? config.embed.colors.online : config.embed.colors.offline)
-        .setTimestamp();
+      .setColor(0xFF0000)
+      .setAuthor({
+        name: 'AstralX',
+        iconURL: 'https://files.catbox.moe/wjy92c.png'
+      })
+      .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+      .setTitle('Prefix & Slash Commands Info')
+      .setDescription(
+        `â€¢ **Server Prefix:** \`${PREFIX}\`\n` +
+        `â€¢ **Command Type:** Works with both **Prefix & Slash**\n\n` +
+        `**My Commands:**\n` +
+        'ðŸ›¡ï¸ : Antinuke\n' +
+        'ðŸ›¡ï¸ : Automod\n' +
+        'âš™ï¸ : Config\n' +
+        'ðŸ“‚ : Extra\n' +
+        'ðŸ˜„ : Fun\n' +
+        'â„¹ï¸ : Information\n' +
+        'ðŸ”¨ : Moderation\n' +
+        'ðŸŽµ : Music\n' +
+        'ðŸ‘¤ : Profile\n' +
+        'ðŸŽ­ : Role\n' +
+        'ðŸ”§ : Utility\n' +
+        'ðŸŽ™ï¸ : Voice\n' +
+        'ðŸ‘‹ : Welcome'
+      )
+      .setImage('https://cdn.discordapp.com/attachments/1399652585622999080/1403998391825862747/standard.gif')
+      .setFooter({
+        text: `AstralX â€¢ Loved by ${client.guilds.cache.size} Servers â€¢ Requested by ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL({ dynamic: true })
+      });
 
-    // Add server info fields
-    embed.addFields(
-        { name: '📡 Server', value: `${serverConfig.name} (${serverConfig.ip}:${serverConfig.port})`, inline: true },
-        { name: '🔌 Status', value: status.online ? '✅ Online' : '❌ Offline', inline: true }
+    const row = new ActionRowBuilder().addComponents(
+      new StringSelectMenuBuilder()
+        .setCustomId('help-category')
+        .setPlaceholder('ðŸ“‚ Select a Command Category')
+        .addOptions([
+          { label: 'Antinuke', value: 'antinuke', emoji: 'ðŸ›¡ï¸' },
+          { label: 'Automod', value: 'automod', emoji: 'ðŸ›¡ï¸' },
+          { label: 'Config', value: 'config', emoji: 'âš™ï¸' },
+          { label: 'Extra', value: 'extra', emoji: 'ðŸ“‚' },
+          { label: 'Fun', value: 'fun', emoji: 'ðŸ˜„' },
+          { label: 'Information', value: 'information', emoji: 'â„¹ï¸' },
+          { label: 'Moderation', value: 'moderation', emoji: 'ðŸ”¨' },
+          { label: 'Music', value: 'music', emoji: 'ðŸŽµ' },
+          { label: 'Profile', value: 'profile', emoji: 'ðŸ‘¤' },
+          { label: 'Role', value: 'role', emoji: 'ðŸŽ­' },
+          { label: 'Utility', value: 'utility', emoji: 'ðŸ”§' },
+          { label: 'Voice', value: 'voice', emoji: 'ðŸŽ™ï¸' },
+          { label: 'Welcome', value: 'welcome', emoji: 'ðŸ‘‹' }
+        ])
     );
 
-    if (status.online) {
-        embed.addFields(
-            { name: '👥 Players', value: `${status.players}/${status.maxPlayers}`, inline: true },
-            { name: '🏷️ Version', value: status.version, inline: true },
-            { name: '📊 Ping', value: `${status.ping}ms`, inline: true },
-            { name: '📝 MOTD', value: status.description || 'No description available' }
-        );
+    return message.channel.send({ embeds: [embed], components: [row] });
+  }
 
-        if (serverConfig.display.showNextUpdate) {
-            const nextUpdate = Math.floor((Date.now() + serverConfig.updateInterval) / 1000);
-            embed.addFields({
-                name: '⏱️ Next Update',
-                value: `<t:${nextUpdate}:R>`,
-                inline: true
-            });
-        }
-    } else {
-        embed.addFields(
-            { name: '❌ Error', value: status.error || 'Could not connect to server' }
-        );
+  // OWNER COMMAND
+  else if (message.content === `${PREFIX}owner`) {
+    const embed = new EmbedBuilder()
+      .setColor(0xFF0000)
+      .setTitle('Owner Info')
+      .setDescription('My Owner Is **__GodSpiderz__**')
+      .setImage('https://cdn.discordapp.com/attachments/1399599107856666722/1404035904774996052/Pi7_GIF_CMP.gif')
+      .setFooter({
+        text: `Requested by ${message.author.username}`,
+        iconURL: message.author.displayAvatarURL({ dynamic: true })
+      });
+    return message.channel.send({ embeds: [embed] });
+  }
+
+  // PROFILE COMMAND
+  else if (message.content.startsWith(`${PREFIX}profile`)) {
+    const member = message.mentions.members.first() || message.member;
+    const user = member.user;
+    const avatarURL = user.displayAvatarURL({ dynamic: true, size: 1024 });
+
+    const createdAt = `<t:${Math.floor(user.createdTimestamp / 1000)}:F>`;
+    const joinedAt = member.joinedTimestamp ? `<t:${Math.floor(member.joinedTimestamp / 1000)}:F>` : 'N/A';
+
+    const embed = new EmbedBuilder()
+      .setColor(0x00AE86)
+      .setAuthor({ name: user.tag, iconURL: avatarURL })
+      .setThumbnail(avatarURL)
+      .addFields(
+        { name: 'Account Created', value: createdAt, inline: true },
+        { name: 'Joined Server', value: joinedAt, inline: true }
+      )
+      .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('Download Avatar')
+        .setStyle(ButtonStyle.Link)
+        .setURL(avatarURL)
+    );
+
+    return message.channel.send({ embeds: [embed], components: [row] });
+  }
+
+  // PURGE COMMAND
+  else if (message.content.startsWith(`${PREFIX}purge`)) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
+      return message.reply({ content: 'âŒ You do not have permission to manage messages.', allowedMentions: { repliedUser: false } });
+
+    const args = message.content.split(/\s+/);
+    if (!args[1]) return message.reply({ content: 'âŒ Please specify amount or "all".', allowedMentions: { repliedUser: false } });
+
+    if (args[1].toLowerCase() === 'all') {
+      try {
+        const fetched = await message.channel.messages.fetch({ limit: 100 });
+        await message.channel.bulkDelete(fetched, true);
+        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor(0x00AE86).setDescription('ðŸ§¹ Deleted up to 100 recent messages.')] });
+        setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
+      } catch {
+        message.channel.send({ content: 'âŒ Failed to delete messages.', allowedMentions: { repliedUser: false } });
+      }
+      return;
     }
 
-    embed.setFooter(config.embed.footer);
+    const amount = parseInt(args[1]);
+    if (isNaN(amount) || amount < 1 || amount > 100) return message.reply({ content: 'âŒ Please provide an amount between 1 and 100 or "all".', allowedMentions: { repliedUser: false } });
 
-    const files = [];
-    
-    // Handle display type and images
-    if (serverConfig.display.type === 'chart' && serverConfig.display.chart.enabled && status.online) {
-        try {
-            const chartBuffer = await generatePlayerChart(
-                serverConfig.channelId,
-                serverConfig.display.chart.color
-            );
-            if (chartBuffer) {
-                const attachment = new AttachmentBuilder(chartBuffer, { name: 'player-chart.png' });
-                files.push(attachment);
-                embed.setImage('attachment://player-chart.png');
-                log.info('Added chart to message');
-            }
-        } catch (error) {
-            log.error(`Failed to generate player chart: ${error.message}`);
-        }
-    } else if (serverConfig.display.type === 'banner' && serverConfig.display.banner.enabled) {
-        try {
-            embed.setImage(serverConfig.display.banner.url);
-            log.info('Added banner to message');
-        } catch (error) {
-            log.error(`Failed to set banner image: ${error.message}`);
-        }
+    try {
+      await message.channel.bulkDelete(amount, true);
+      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor(0x00AE86).setDescription(`ðŸ§¹ Deleted **${amount}** messages.`)] });
+      setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
+    } catch {
+      message.channel.send({ content: 'âŒ Failed to delete messages.', allowedMentions: { repliedUser: false } });
+    }
+  }
+
+  // NUKE COMMAND
+  else if (message.content === `${PREFIX}nuke`) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
+      return message.reply({ content: 'âŒ You do not have permission to manage channels.', allowedMentions: { repliedUser: false } });
+
+    const embed = new EmbedBuilder()
+      .setTitle('âš ï¸ Confirm Channel Nuke')
+      .setDescription('Are you sure you want to nuke this channel? All messages will be deleted!')
+      .setColor(0xFF0000);
+
+    const row = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('nuke_confirm')
+        .setLabel('Confirm')
+        .setStyle(ButtonStyle.Danger),
+
+      new ButtonBuilder()
+        .setCustomId('nuke_cancel')
+        .setLabel('Cancel')
+        .setStyle(ButtonStyle.Success),
+    );
+
+    return message.channel.send({ embeds: [embed], components: [row] });
+  }
+
+  // INFO COMMAND
+  else if (message.content === `${PREFIX}info`) {
+    const guild = message.guild;
+    const boostCount = guild.premiumSubscriptionCount || 0;
+    const totalMembers = guild.memberCount;
+    const totalRoles = guild.roles.cache.size;
+
+    const onlineCount = guild.members.cache.filter(m => m.presence?.status === 'online').size;
+    const offlineCount = totalMembers - onlineCount;
+
+    const embed = new EmbedBuilder()
+      .setTitle(`${guild.name} Server Info`)
+      .setThumbnail(guild.iconURL({ dynamic: true }))
+      .setColor(0x0099FF)
+      .addFields(
+        { name: 'Total Members', value: totalMembers.toString(), inline: true },
+        { name: 'Boosts', value: boostCount.toString(), inline: true },
+        { name: 'Online Members', value: onlineCount.toString(), inline: true },
+        { name: 'Offline Members', value: offlineCount.toString(), inline: true },
+        { name: 'Total Roles', value: totalRoles.toString(), inline: true },
+      )
+      .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+
+    return message.channel.send({ embeds: [embed] });
+  }
+
+  // MC COMMAND
+  else if (message.content === `${PREFIX}mc`) {
+    const guild = message.guild;
+    const totalMembers = guild.memberCount;
+
+    const embed = new EmbedBuilder()
+      .setTitle(guild.name)
+      .setColor(0x0099FF)
+      .setDescription(`**__Total Members__** : ${totalMembers}`);
+
+    return message.channel.send({ embeds: [embed] });
+  }
+
+  // ROLE COMMAND
+  else if (message.content.startsWith(`${PREFIX}role`)) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles))
+      return message.reply({ content: 'âŒ You do not have permission to manage roles.', allowedMentions: { repliedUser: false } });
+
+    const args = message.content.split(/\s+/);
+    const member = message.mentions.members.first();
+    const role = message.mentions.roles.first();
+
+    if (!member) return message.reply({ content: 'âŒ Please mention a member to assign a role.', allowedMentions: { repliedUser: false } });
+    if (!role) return message.reply({ content: 'âŒ Please mention a role to assign.', allowedMentions: { repliedUser: false } });
+
+    if (role.position >= message.guild.members.me.roles.highest.position) {
+      return message.reply({ content: 'âŒ I cannot assign that role because it is higher or equal to my highest role.', allowedMentions: { repliedUser: false } });
+    }
+
+    if (message.member.roles.highest.position <= role.position) {
+      return message.reply({ content: 'âŒ You cannot assign a role higher or equal to your highest role.', allowedMentions: { repliedUser: false } });
     }
 
     try {
-        let message;
-        
-        // Try to fetch existing message
-        if (serverConfig.messageId) {
-            try {
-                message = await channel.messages.fetch(serverConfig.messageId);
-            } catch (error) {
-                log.warn(`Could not find message ${serverConfig.messageId}, will create new one`);
-                await cleanupOldMessages(channel);
-            }
-        }
-
-        // If message exists, edit it, otherwise create new one
-        if (message) {
-            await message.edit({ embeds: [embed], files });
-        } else {
-            message = await channel.send({ embeds: [embed], files });
-            saveMessageId(serverConfig.channelId, message.id);
-        }
-
-        statusMessages.set(serverConfig.channelId, message);
-        log.info(`Updated status for ${serverConfig.name}`);
-    } catch (error) {
-        log.error(`Failed to update status message for ${serverConfig.name} - ${error.message}`);
+      await member.roles.add(role);
+      const embed = new EmbedBuilder()
+        .setColor(0x00AE86)
+        .setTitle('Role Assigned')
+        .setDescription(`Successfully assigned role ${role} to member ${member}.`)
+        .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+      return message.channel.send({ embeds: [embed] });
+    } catch {
+      return message.reply({ content: 'âŒ Failed to assign role.', allowedMentions: { repliedUser: false } });
     }
-}
+  }
+});
 
-function initializeStatusUpdates() {
-    // Clear any existing intervals
-    for (const interval of updateIntervals.values()) {
-        clearInterval(interval);
-    }
-    updateIntervals.clear();
-
-    // Set up new intervals for each server
-    for (const server of config.minecraft.servers) {
-        // Initial update
-        updateServerStatus(server);
-        
-        // Set up periodic updates
-        const interval = setInterval(() => updateServerStatus(server), server.updateInterval);
-        updateIntervals.set(server.channelId, interval);
-        
-        log.info(`Initialized status updates for ${server.name} (${server.ip}:${server.port})`);
-    }
-}
-
-// Status command handler
+// Interaction handler for buttons (like nuke confirm/cancel)
 client.on('interactionCreate', async interaction => {
-    if (!interaction.isCommand()) return;
+  if (!interaction.isButton()) return;
 
-    if (interaction.commandName === 'status') {
-        const serverName = interaction.options.getString('server');
-        const server = config.minecraft.servers.find(s => s.name.toLowerCase() === serverName.toLowerCase());
-        
-        if (!server) {
-            await interaction.reply({
-                content: `Server "${serverName}" not found in configuration!`,
-                ephemeral: true
-            });
-            return;
-        }
-
-        const status = await checkServerStatus(server.ip, server.port);
-        const embed = new EmbedBuilder()
-            .setTitle(`${server.name} Status`)
-            .setColor(status.online ? config.embed.colors.online : config.embed.colors.offline)
-            .setTimestamp()
-            .setFooter(config.embed.footer);
-
-        if (status.online) {
-            embed.addFields(
-                { name: '🔌 Status', value: '✅ Online', inline: true },
-                { name: '👥 Players', value: `${status.players}/${status.maxPlayers}`, inline: true },
-                { name: '📊 Ping', value: `${status.ping}ms`, inline: true },
-                { name: '🏷️ Version', value: status.version }
-            );
-
-            if (server.display.showNextUpdate) {
-                const nextUpdate = Math.floor((Date.now() + server.updateInterval) / 1000);
-                embed.addFields({
-                    name: '⏱️ Next Update',
-                    value: `<t:${nextUpdate}:R>`,
-                    inline: true
-                });
-            }
-        } else {
-            embed.addFields(
-                { name: '🔌 Status', value: '❌ Offline', inline: true },
-                { name: '❌ Error', value: status.error || 'Could not connect to server' }
-            );
-        }
-
-        const files = [];
-        if (server.display.type === 'chart' && server.display.chart.enabled && status.online) {
-            try {
-                const chartBuffer = await generatePlayerChart(
-                    server.channelId,
-                    server.display.chart.color
-                );
-                if (chartBuffer) {
-                    const attachment = new AttachmentBuilder(chartBuffer, { name: 'player-chart.png' });
-                    files.push(attachment);
-                    embed.setImage('attachment://player-chart.png');
-                }
-            } catch (error) {
-                log.error(`Failed to generate player chart: ${error.message}`);
-            }
-        } else if (server.display.type === 'banner' && server.display.banner.enabled) {
-            embed.setImage(server.display.banner.url);
-        }
-
-        await interaction.reply({
-            embeds: [embed],
-            files,
-            ephemeral: true
-        });
+  if (interaction.customId === 'nuke_confirm') {
+    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
+      return interaction.reply({ content: 'âŒ You do not have permission to manage channels.', ephemeral: true });
     }
+
+    try {
+      const channel = interaction.channel;
+      await channel.clone();
+      const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
+      await channel.delete();
+      return interaction.reply({ content: `ðŸ’¥ Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
+    } catch {
+      return interaction.reply({ content: 'âŒ Failed to nuke the channel.', ephemeral: true });
+    }
+  }
+
+  if (interaction.customId === 'nuke_cancel') {
+    if (interaction.message.deletable) {
+      await interaction.message.delete();
+    }
+    return interaction.reply({ content: 'âŒ Nuke cancelled.', ephemeral: true });
+  }
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname)));
-
-// Express routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'uptimer.html'));
-});
-
-app.get('/status', (req, res) => {
-    const status = {
-        status: 'online',
-        uptime: process.uptime(),
-        timestamp: new Date().toISOString(),
-        servers: config.minecraft.servers.map(server => ({
-            name: server.name,
-            ip: server.ip
-        }))
-    };
-    res.json(status);
-});
-
-// Start Express server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    log.info(`Express server is running on port ${PORT}`);
-});
-
-// Start the bot
-client.login(process.env.DISCORD_TOKEN); 
+client.login(TOKEN);
