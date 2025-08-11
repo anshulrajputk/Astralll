@@ -109,10 +109,7 @@ client.on('messageCreate', async (message) => {
         '🎫 : Ticket'
       )
       .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif?ex=689b0de0&is=6899bc60&hm=c807aef0e6c1c1141b317798c1c83c7862068281bdf407a5604dd3747756fb54&')
-      .setFooter({
-        text: `AstralX • Loved by ${client.guilds.cache.size} Servers • Requested by ${message.author.username}`,
-        iconURL: message.author.displayAvatarURL({ dynamic: true })
-      });
+      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     const row = new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
@@ -147,10 +144,7 @@ client.on('messageCreate', async (message) => {
       .setTitle('Owner Info')
       .setDescription('**My Owner Is** **__GodSpiderz__**')
       .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif?ex=689b1180&is=6899c000&hm=25b0b7a180931ebceec06b64e04adb3caf7bc51d3d9bfb45ee66e2a7b9c3faa4&')
-      .setFooter({
-        text: `Requested by ${message.author.username}`,
-        iconURL: message.author.displayAvatarURL({ dynamic: true })
-      });
+      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
     return message.channel.send({ embeds: [embed] });
   }
 
@@ -171,7 +165,7 @@ client.on('messageCreate', async (message) => {
         { name: 'Account Created', value: createdAt, inline: true },
         { name: 'Joined Server', value: joinedAt, inline: true }
       )
-      .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -195,7 +189,7 @@ client.on('messageCreate', async (message) => {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('🧹 Deleted up to 100 recent messages.')] });
+        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('🧹 Deleted up to 100 recent messages.').setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
         setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
       } catch {
         message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -208,7 +202,7 @@ client.on('messageCreate', async (message) => {
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`🧹 Deleted **${amount}** messages.`)] });
+      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`🧹 Deleted **${amount}** messages.`).setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
       setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
     } catch {
       message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -223,7 +217,8 @@ client.on('messageCreate', async (message) => {
     const embed = new EmbedBuilder()
       .setTitle('⚠️ Confirm Channel Nuke')
       .setDescription('Are you sure you want to nuke this channel? All messages will be deleted!')
-      .setColor('#00faff');
+      .setColor('#00faff')
+      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     const row = new ActionRowBuilder().addComponents(
       new ButtonBuilder()
@@ -260,7 +255,7 @@ client.on('messageCreate', async (message) => {
         { name: 'Offline Members', value: offlineCount.toString(), inline: true },
         { name: 'Total Roles', value: totalRoles.toString(), inline: true },
       )
-      .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     return message.channel.send({ embeds: [embed] });
   }
@@ -273,7 +268,8 @@ client.on('messageCreate', async (message) => {
     const embed = new EmbedBuilder()
       .setTitle(guild.name)
       .setColor('#00faff')
-      .setDescription(`**__Total Members__** : ${totalMembers}`);
+      .setDescription(`**__Total Members__** : ${totalMembers}`)
+      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     return message.channel.send({ embeds: [embed] });
   }
@@ -304,7 +300,7 @@ client.on('messageCreate', async (message) => {
         .setColor('#00faff')
         .setTitle('Role Assigned')
         .setDescription(`Successfully assigned role ${role} to member ${member}.`)
-        .setFooter({ text: `Requested by ${message.author.tag}`, iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+        .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
       return message.channel.send({ embeds: [embed] });
     } catch {
       return message.reply({ content: '❌ Failed to assign role.', allowedMentions: { repliedUser: false } });
@@ -340,4 +336,3 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(TOKEN);
-
