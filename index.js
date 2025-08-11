@@ -107,7 +107,7 @@ iconURL: 'https://files.catbox.moe/84j0t8.png'
   '🎉 : Giveaways\n' +
   '🎫 : Ticket'
 )
-   .setImage('https://cdn.discordapp.com/attachments/1399652585622999080/1403998391825862747/standard.gif')   .setFooter({   text:AstralX • Loved by ${client.guilds.cache.size} Servers • Requested by ${message.author.username}`,
+   .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif?ex=689b0de0&is=6899bc60&hm=c807aef0e6c1c1141b317798c1c83c7862068281bdf407a5604dd3747756fb54&')   .setFooter({   text:AstralX • Loved by ${client.guilds.cache.size} Servers • Requested by ${message.author.username}`,
 iconURL: message.author.displayAvatarURL({ dynamic: true })
 });
 
@@ -345,3 +345,4 @@ return interaction.reply({ content: '❌ Nuke cancelled.', ephemeral: true });
 });
 
 client.login(TOKEN);
+
