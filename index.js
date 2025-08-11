@@ -193,7 +193,7 @@ client.on('messageCreate', async (message) => {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('🧹 Deleted up to 100 recent messages.').setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
+        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('<:t_:1404452236637114429> Deleted up to 100 recent messages.').setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
         setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
       } catch {
         message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -206,7 +206,7 @@ client.on('messageCreate', async (message) => {
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`🧹 Deleted **${amount}** messages.`).setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
+      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`<:t_:1404452236637114429> Deleted **${amount}** messages.`).setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
       setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
     } catch {
       message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -325,7 +325,7 @@ client.on('interactionCreate', async interaction => {
       await channel.clone();
       const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
       await channel.delete();
-      return interaction.reply({ content: `💥 Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
+      return interaction.reply({ content: `<:t_:1404452236637114429> Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
     } catch {
       return interaction.reply({ content: '❌ Failed to nuke the channel.', ephemeral: true });
     }
@@ -344,6 +344,7 @@ client.login(TOKEN);
 
 
                                                                               
+
 
 
 
