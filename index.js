@@ -193,7 +193,7 @@ client.on('messageCreate', async (message) => {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('<:t_:1404452236637114429> Deleted up to 100 recent messages.') });
+        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('<:t_:1404452236637114429> Deleted up to 100 recent messages.') } });
         setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
       } catch {
         message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -206,7 +206,7 @@ client.on('messageCreate', async (message) => {
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`<:t_:1404452236637114429> Deleted **${amount}** messages.`) });                                         
+      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`<:t_:1404452236637114429> Deleted **${amount}** messages.`) } });                                         
       setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
     } catch {
       message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -344,6 +344,7 @@ client.login(TOKEN);
 
 
                                                                               
+
 
 
 
