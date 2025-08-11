@@ -345,6 +345,3 @@ return interaction.reply({ content: '❌ Nuke cancelled.', ephemeral: true });
 });
 
 client.login(TOKEN);
-
-
-
