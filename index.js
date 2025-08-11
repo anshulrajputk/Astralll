@@ -66,7 +66,67 @@ client.on('guildMemberAdd', member => {
   const channel = member.guild.systemChannel;
   if (!channel) return;
 
+  const embed = // HELP COMMAND
+if (message.content === `${PREFIX}help`) {
   const embed = new EmbedBuilder()
+    .setColor('#00faff')
+    .setAuthor({
+      name: 'AstralX',
+      iconURL: 'https://files.catbox.moe/84j0t8.png'
+    })
+    .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
+    .setTitle('Prefix & Slash Commands Info')
+    .setDescription(
+      `• **Server Prefix:** \`${PREFIX}\`\n` +
+      `• **Command Type:** Works with both **Prefix & Slash**\n\n` +
+      `<:head:1368557621547896882> **__My Commands:__**\n` +
+      `> <:antinuke:1395712971354804266> \`:\` **Antinuke**\n` +
+      `> <:automod:1368545884136013824> \`:\` **Automod**\n` +
+      `> <:utility:1369525259098656809> \`:\` **Config**\n` +
+      `> <:extra:1395706131682164927> \`:\` **Extra**\n` +
+      `> <:dumb:1368548200532938793> \`:\` **Fun**\n` +
+      `> <:info:1368557726447439983> \`:\` **Information**\n` +
+      `> <:moderation:1369523757055479818> \`:\` **Moderation**\n` +
+      `> <:music:1369523861107769364> \`:\` **Music**\n` +
+      `> <:playlist:1369524616288014346> \`:\` **Playlists**\n` +
+      `> <:autorole:1368545900917424259> \`:\` **Profile**\n` +
+      `> <:autorole:1368545900917424259> \`:\` **Role**\n` +
+      `> <:utility:1369525259098656809> \`:\` **Utility**\n` +
+      `> <:volup:1369525408353222767> \`:\` **Voice**\n` +
+      `> <:welcome:1369525441135771669> \`:\` **Welcome**\n` +
+      `> <:giveaway:1404420200371191828> \`:\` **Giveaway**\n` +
+      `> <:ticket:1404420115008851999> \`:\` **Ticket**`
+    )
+    .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif?ex=689b0de0&is=6899bc60&hm=c807aef0e6c1c1141b317798c1c83c7862068281bdf407a5604dd3747756fb54&')
+    .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
+
+  const row = new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder()
+      .setCustomId('help-category')
+      .setPlaceholder('Select a Command Category')
+      .addOptions([
+        { label: 'Antinuke', value: 'antinuke', emoji: '<:antinuke:1395712971354804266>' },
+        { label: 'Automod', value: 'automod', emoji: '<:automod:1368545884136013824>' },
+        { label: 'Config', value: 'config', emoji: '<:utility:1369525259098656809>' },
+        { label: 'Extra', value: 'extra', emoji: '<:extra:1395706131682164927>' },
+        { label: 'Fun', value: 'fun', emoji: '<:dumb:1368548200532938793>' },
+        { label: 'Information', value: 'information', emoji: '<:info:1368557726447439983>' },
+        { label: 'Moderation', value: 'moderation', emoji: '<:moderation:1369523757055479818>' },
+        { label: 'Music', value: 'music', emoji: '<:music:1369523861107769364>' },
+        { label: 'Playlists', value: 'playlists', emoji: '<:playlist:1369524616288014346>' },
+        { label: 'Profile', value: 'profile', emoji: '<:autorole:1368545900917424259>' },
+        { label: 'Role', value: 'role', emoji: '<:autorole:1368545900917424259>' },
+        { label: 'Utility', value: 'utility', emoji: '<:utility:1369525259098656809>' },
+        { label: 'Voice', value: 'voice', emoji: '<:volup:1369525408353222767>' },
+        { label: 'Welcome', value: 'welcome', emoji: '<:welcome:1369525441135771669>' },
+        { label: 'Giveaway', value: 'giveaways', emoji: '<:giveaway:1404420200371191828>' },
+        { label: 'Ticket', value: 'ticket', emoji: '<:ticket:1404420115008851999>' }
+      ])
+  );
+
+  return message.channel.send({ embeds: [embed], components: [row] });
+}
+  new EmbedBuilder()
     .setTitle(welcomeSettings.title)
     .setDescription(welcomeSettings.description)
     .setColor('#00faff')
@@ -78,63 +138,7 @@ client.on('guildMemberAdd', member => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
-  // HELP COMMAND
-  if (message.content === `${PREFIX}help`) {
-    const embed = new EmbedBuilder()
-      .setColor('#00faff')
-      .setAuthor({
-        name: 'AstralX',
-        iconURL: 'https://files.catbox.moe/84j0t8.png'
-      })
-      .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-      .setTitle('Prefix & Slash Commands Info')
-      .setDescription(
-        `• **Server Prefix:** \`${PREFIX}\`\n` +
-        `• **Command Type:** Works with both **Prefix & Slash**\n\n` +
-        `**My Commands:**\n` +
-        '🛡️ : Antinuke\n' +
-        '🛡️ : Automod\n' +
-        '⚙️ : Config\n' +
-        '📂 : Extra\n' +
-        '😄 : Fun\n' +
-        'ℹ️ : Information\n' +
-        '🔨 : Moderation\n' +
-        '🎵 : Music\n' +
-        '👤 : Profile\n' +
-        '🎭 : Role\n' +
-        '🔧 : Utility\n' +
-        '🎙️ : Voice\n' +
-        '👋 : Welcome\n' +
-        '🎉 : Giveaways\n' +
-        '🎫 : Ticket'
-      )
-      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif?ex=689b0de0&is=6899bc60&hm=c807aef0e6c1c1141b317798c1c83c7862068281bdf407a5604dd3747756fb54&')
-      .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
-    const row = new ActionRowBuilder().addComponents(
-      new StringSelectMenuBuilder()
-        .setCustomId('help-category')
-        .setPlaceholder('📂 Select a Command Category')
-        .addOptions([
-          { label: 'Antinuke', value: 'antinuke', emoji: '🛡️' },
-          { label: 'Automod', value: 'automod', emoji: '🛡️' },
-          { label: 'Config', value: 'config', emoji: '⚙️' },
-          { label: 'Extra', value: 'extra', emoji: '📂' },
-          { label: 'Fun', value: 'fun', emoji: '😄' },
-          { label: 'Information', value: 'information', emoji: 'ℹ️' },
-          { label: 'Moderation', value: 'moderation', emoji: '🔨' },
-          { label: 'Music', value: 'music', emoji: '🎵' },
-          { label: 'Profile', value: 'profile', emoji: '👤' },
-          { label: 'Role', value: 'role', emoji: '🎭' },
-          { label: 'Utility', value: 'utility', emoji: '🔧' },
-          { label: 'Voice', value: 'voice', emoji: '🎙️' },
-          { label: 'Welcome', value: 'welcome', emoji: '👋' },
-          { label: 'Giveaways', value: 'giveaways', emoji: '🎉' },
-          { label: 'Ticket', value: 'ticket', emoji: '🎫' }
-        ])
-    );
-
-    return message.channel.send({ embeds: [embed], components: [row] });
   }
 
   // OWNER COMMAND
@@ -337,3 +341,4 @@ client.on('interactionCreate', async interaction => {
 
 client.login(TOKEN);
          
+
