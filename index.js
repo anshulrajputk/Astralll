@@ -93,22 +93,22 @@ client.on('messageCreate', async (message) => {
       .setDescription(
         `• **Server Prefix:** \`${PREFIX}\`\n` +
         `• **Command Type:** Works with both **Prefix & Slash**\n\n` +
-        `<:head:1368557621547896882> **__My Commands:__**\n` +
-        `> <:antinuke:1395712971354804266> \`:\` **Antinuke**\n` +
-        `> <:automod:1368545884136013824> \`:\` **Automod**\n` +
-        `> <:utility:1369525259098656809> \`:\` **Config**\n` +
-        `> <:extra:1395706131682164927> \`:\` **Extra**\n` +
-        `> <:dumb:1368548200532938793> \`:\` **Fun**\n` +
-        `> <:info:1368557726447439983> \`:\` **Information**\n` +
-        `> <:moderation:1369523757055479818> \`:\` **Moderation**\n` +
-        `> <:music:1369523861107769364> \`:\` **Music**\n` +
-        `> <:playlist:1369524616288014346> \`:\` **Playlists**\n` +
-        `> <:autorole:1368545900917424259> \`:\` **Profile**\n` +
-        `> <:autorole:1368545900917424259> \`:\` **Role**\n` +
-        `> <:utility:1369525259098656809> \`:\` **Utility**\n` +
-        `> <:volup:1369525408353222767> \`:\` **Voice**\n` +
-        `> <:welcome:1369525441135771669> \`:\` **Welcome**\n` +
-        `> <:giveaway:1404420200371191828> \`:\` **Giveaway**\n` +
+        `<:head:1404441425453514814> **__My Commands:__**\n` +
+`> <:antinuke:1404440300273008703> \`:\` **Antinuke**\n` +
+`> <:automod:1404441015250849915> \`:\` **Automod**\n` +
+`> <:utility:1404443195181629585> \`:\` **Config**\n` +
+`> <:extra:1404442477070651502> \`:\` **Extra**\n` +
+`> <:dumb:1404442563422851163> \`:\` **Fun**\n` +
+`> <:info:1404442532602970203> \`:\` **Information**\n` +
+`> <:moderation:1404442504845332520> \`:\` **Moderation**\n` +
+`> <:music:1404443059999080449> \`:\` **Music**\n` +
+`> <:playlist:1404442968840081470> \`:\` **Playlists**\n` +
+`> <:autorole:1404442940243181668> \`:\` **Profile**\n` +
+`> <:autorole:1404442940243181668> \`:\` **Role**\n` +
+`> <:utility:1404441956037165147> \`:\` **Utility**\n` +
+`> <:volup:1404443196519612559> \`:\` **Voice**\n` +
+`> <:welcome:1404443195856650281> \`:\` **Welcome**\n`
+  `> <:giveaway:1404420200371191828> \`:\` **Giveaway**\n` +
         `> <:ticket:1404420115008851999> \`:\` **Ticket**`
       )
       .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif')
@@ -344,3 +344,4 @@ client.login(TOKEN);
 
 
                                                                               
+
