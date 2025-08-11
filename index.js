@@ -1,3 +1,4 @@
+// index.js
 const {
   Client,
   GatewayIntentBits,
@@ -62,6 +63,7 @@ client.once('ready', () => {
   console.log(`${client.user.tag} is online!`);
 });
 
+// Welcome embed on member join
 client.on('guildMemberAdd', member => {
   const channel = member.guild.systemChannel;
   if (!channel) return;
@@ -72,11 +74,11 @@ client.on('guildMemberAdd', member => {
     .setColor('#00faff')
     .setTimestamp();
 
-  channel.send({ embeds: [embed] });
+  channel.send({ embeds: [embed] }).catch(() => {});
 });
 
 client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
+  if (message.author.bot || !message.guild) return;
 
   // HELP COMMAND
   if (message.content === `${PREFIX}help`) {
@@ -87,50 +89,52 @@ client.on('messageCreate', async (message) => {
         iconURL: 'https://files.catbox.moe/84j0t8.png'
       })
       .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
-      .setTitle('Prefix & Slash Commands Info')
+      .setTitle('📂 Prefix & Slash Commands Info')
       .setDescription(
         `• **Server Prefix:** \`${PREFIX}\`\n` +
-        `• **Command Type:** Works with both **Prefix & Slash**\n\n` +
-        `**My Commands:**\n` +
-        '🛡️ : Antinuke\n' +
-        '🛡️ : Automod\n' +
-        '⚙️ : Config\n' +
-        '📂 : Extra\n' +
-        '😄 : Fun\n' +
-        'ℹ️ : Information\n' +
-        '🔨 : Moderation\n' +
-        '🎵 : Music\n' +
-        '👤 : Profile\n' +
-        '🎭 : Role\n' +
-        '🔧 : Utility\n' +
-        '🎙️ : Voice\n' +
-        '👋 : Welcome\n' +
-        '🎉 : Giveaways\n' +
-        '🎫 : Ticket'
+        `• Command Type: Works with both Prefix & Slash\n\n` +
+        `<:head:1368557621547896882> My Commands:\n\n` +
+        `> <:antinuke:1395712971354804266> : Antinuke\n` +
+        `> <:automod:1368545884136013824> : Automod\n` +
+        `> <:utility:1369525259098656809> : Config\n` +
+        `> <:extra:1395706131682164927> : Extra\n` +
+        `> <:dumb:1368548200532938793> : Fun\n` +
+        `> <:info:1368557726447439983> : Information\n` +
+        `> <:moderation:1369523757055479818> : Moderation\n` +
+        `> <:music:1369523861107769364> : Music\n` +
+        `> <:playlist:1369524616288014346> : Playlists\n` +
+        `> <:autorole:1368545900917424259> : Profile\n` +
+        `> <:autorole:1368545900917424259> : Role\n` +
+        `> <:utility:1369525259098656809> : Utility\n` +
+        `> <:volup:1369525408353222767> : Voice\n` +
+        `> <:welcome:1369525441135771669> : Welcome\n` +
+        `> <:giveaway:1404420200371191828> : Giveaway\n` +
+        `> <:ticket:1404420115008851999> : Ticket`
       )
-      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif?ex=689b0de0&is=6899bc60&hm=c807aef0e6c1c1141b317798c1c83c7862068281bdf407a5604dd3747756fb54&')
+      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     const row = new ActionRowBuilder().addComponents(
       new StringSelectMenuBuilder()
         .setCustomId('help-category')
-        .setPlaceholder('📂 Select a Command Category')
+        .setPlaceholder('Select a Command Category')
         .addOptions([
-          { label: 'Antinuke', value: 'antinuke', emoji: '🛡️' },
-          { label: 'Automod', value: 'automod', emoji: '🛡️' },
-          { label: 'Config', value: 'config', emoji: '⚙️' },
-          { label: 'Extra', value: 'extra', emoji: '📂' },
-          { label: 'Fun', value: 'fun', emoji: '😄' },
-          { label: 'Information', value: 'information', emoji: 'ℹ️' },
-          { label: 'Moderation', value: 'moderation', emoji: '🔨' },
-          { label: 'Music', value: 'music', emoji: '🎵' },
-          { label: 'Profile', value: 'profile', emoji: '👤' },
-          { label: 'Role', value: 'role', emoji: '🎭' },
-          { label: 'Utility', value: 'utility', emoji: '🔧' },
-          { label: 'Voice', value: 'voice', emoji: '🎙️' },
-          { label: 'Welcome', value: 'welcome', emoji: '👋' },
-          { label: 'Giveaways', value: 'giveaways', emoji: '🎉' },
-          { label: 'Ticket', value: 'ticket', emoji: '🎫' }
+          { label: 'Antinuke', value: 'antinuke', emoji: '<:antinuke:1395712971354804266>' },
+          { label: 'Automod', value: 'automod', emoji: '<:automod:1368545884136013824>' },
+          { label: 'Config', value: 'config', emoji: '<:utility:1369525259098656809>' },
+          { label: 'Extra', value: 'extra', emoji: '<:extra:1395706131682164927>' },
+          { label: 'Fun', value: 'fun', emoji: '<:dumb:1368548200532938793>' },
+          { label: 'Information', value: 'information', emoji: '<:info:1368557726447439983>' },
+          { label: 'Moderation', value: 'moderation', emoji: '<:moderation:1369523757055479818>' },
+          { label: 'Music', value: 'music', emoji: '<:music:1369523861107769364>' },
+          { label: 'Playlists', value: 'playlists', emoji: '<:playlist:1369524616288014346>' },
+          { label: 'Profile', value: 'profile', emoji: '<:autorole:1368545900917424259>' },
+          { label: 'Role', value: 'role', emoji: '<:autorole:1368545900917424259>' },
+          { label: 'Utility', value: 'utility', emoji: '<:utility:1369525259098656809>' },
+          { label: 'Voice', value: 'voice', emoji: '<:volup:1369525408353222767>' },
+          { label: 'Welcome', value: 'welcome', emoji: '<:welcome:1369525441135771669>' },
+          { label: 'Giveaway', value: 'giveaway', emoji: '<:giveaway:1404420200371191828>' },
+          { label: 'Ticket', value: 'ticket', emoji: '<:ticket:1404420115008851999>' }
         ])
     );
 
@@ -142,8 +146,8 @@ client.on('messageCreate', async (message) => {
     const embed = new EmbedBuilder()
       .setColor('#00faff')
       .setTitle('Owner Info')
-      .setDescription('**My Owner Is** **__GodSpiderz__**')
-      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif?ex=689b1180&is=6899c000&hm=25b0b7a180931ebceec06b64e04adb3caf7bc51d3d9bfb45ee66e2a7b9c3faa4&')
+      .setDescription('My Owner Is GodSpiderz')
+      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
     return message.channel.send({ embeds: [embed] });
   }
@@ -189,7 +193,14 @@ client.on('messageCreate', async (message) => {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription('🧹 Deleted up to 100 recent messages.').setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
+        const confirmMsg = await message.channel.send({
+          embeds: [
+            new EmbedBuilder()
+              .setColor('#00faff')
+              .setDescription('🧹 Deleted up to 100 recent messages.')
+              .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+          ]
+        });
         setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
       } catch {
         message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -202,7 +213,14 @@ client.on('messageCreate', async (message) => {
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#00faff').setDescription(`🧹 Deleted **${amount}** messages.`).setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })] });
+      const confirmMsg = await message.channel.send({
+        embeds: [
+          new EmbedBuilder()
+            .setColor('#00faff')
+            .setDescription(`🧹 Deleted **${amount}** messages.`)
+            .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) })
+        ]
+      });
       setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
     } catch {
       message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
@@ -228,7 +246,7 @@ client.on('messageCreate', async (message) => {
       new ButtonBuilder()
         .setCustomId('nuke_cancel')
         .setLabel('Cancel')
-        .setStyle(ButtonStyle.Success)
+        .setStyle(ButtonStyle.Secondary)
     );
 
     return message.channel.send({ embeds: [embed], components: [row] });
@@ -241,6 +259,7 @@ client.on('messageCreate', async (message) => {
     const totalMembers = guild.memberCount;
     const totalRoles = guild.roles.cache.size;
 
+    // Online count requires members to be cached & presence intent enabled
     const onlineCount = guild.members.cache.filter(m => m.presence?.status === 'online').size;
     const offlineCount = totalMembers - onlineCount;
 
@@ -253,14 +272,14 @@ client.on('messageCreate', async (message) => {
         { name: 'Boosts', value: boostCount.toString(), inline: true },
         { name: 'Online Members', value: onlineCount.toString(), inline: true },
         { name: 'Offline Members', value: offlineCount.toString(), inline: true },
-        { name: 'Total Roles', value: totalRoles.toString(), inline: true },
+        { name: 'Total Roles', value: totalRoles.toString(), inline: true }
       )
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     return message.channel.send({ embeds: [embed] });
   }
 
-  // MC COMMAND
+  // MC COMMAND (member count simple)
   else if (message.content === `${PREFIX}mc`) {
     const guild = message.guild;
     const totalMembers = guild.memberCount;
@@ -274,7 +293,7 @@ client.on('messageCreate', async (message) => {
     return message.channel.send({ embeds: [embed] });
   }
 
-  // ROLE COMMAND
+  // ROLE COMMAND (assign role)
   else if (message.content.startsWith(`${PREFIX}role`)) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles))
       return message.reply({ content: '❌ You do not have permission to manage roles.', allowedMentions: { repliedUser: false } });
@@ -286,10 +305,12 @@ client.on('messageCreate', async (message) => {
     if (!member) return message.reply({ content: '❌ Please mention a member to assign a role.', allowedMentions: { repliedUser: false } });
     if (!role) return message.reply({ content: '❌ Please mention a role to assign.', allowedMentions: { repliedUser: false } });
 
+    // Bot role position check
     if (role.position >= message.guild.members.me.roles.highest.position) {
       return message.reply({ content: '❌ I cannot assign that role because it is higher or equal to my highest role.', allowedMentions: { repliedUser: false } });
     }
 
+    // User role position check
     if (message.member.roles.highest.position <= role.position) {
       return message.reply({ content: '❌ You cannot assign a role higher or equal to your highest role.', allowedMentions: { repliedUser: false } });
     }
@@ -308,30 +329,73 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-client.on('interactionCreate', async interaction => {
-  if (!interaction.isButton()) return;
-
-  if (interaction.customId === 'nuke_confirm') {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
-      return interaction.reply({ content: '❌ You do not have permission to manage channels.', ephemeral: true });
+// Single interactionCreate handler for buttons & select menu
+client.on('interactionCreate', async (interaction) => {
+  try {
+    // Handle the help select menu
+    if (interaction.isStringSelectMenu()) {
+      if (interaction.customId === 'help-category') {
+        const value = interaction.values[0];
+        const detailMap = {
+          antinuke: 'Antinuke commands: `antiguard`, `lockdown` (example placeholders).',
+          automod: 'Automod commands: `automod toggle`, `automod set`.',
+          config: 'Config commands: `prefix`, `setwelcome`, `setlog`.',
+          extra: 'Extra commands: `avatar`, `invite`.',
+          fun: 'Fun commands: `meme`, `8ball`, `coinflip`.',
+          information: 'Information: `userinfo`, `serverinfo`.',
+          moderation: 'Moderation: `ban`, `kick`, `mute`, `warn`.',
+          music: 'Music commands: `play`, `stop`, `skip` (if music module installed).',
+          playlists: 'Playlists: `save`, `load` (if available).',
+          profile: 'Profile: `profile @user` shows account + join time.',
+          role: 'Role: `role @user @role` to assign a role.',
+          utility: 'Utility: `poll`, `remind`, `avatar`.',
+          voice: 'Voice: `vc join`, `vc leave` (if implemented).',
+          welcome: 'Welcome: `setwelcome` to configure welcome message.',
+          giveaway: 'Giveaway: `gstart`, `gend` (if giveaway module installed).',
+          ticket: 'Ticket: `ticket create`, `ticket close` (if ticket system enabled).'
+        };
+        const replyEmbed = new EmbedBuilder()
+          .setTitle(`${value.charAt(0).toUpperCase() + value.slice(1)} Commands`)
+          .setDescription(detailMap[value] || 'No details available for this category.')
+          .setColor('#00faff')
+          .setFooter({ text: 'AstralX' });
+        return interaction.reply({ embeds: [replyEmbed], ephemeral: true });
+      }
     }
 
-    try {
-      const channel = interaction.channel;
-      await channel.clone();
-      const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
-      await channel.delete();
-      return interaction.reply({ content: `💥 Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
-    } catch {
-      return interaction.reply({ content: '❌ Failed to nuke the channel.', ephemeral: true });
-    }
-  }
+    // Handle button interactions
+    if (interaction.isButton()) {
+      // Nuke confirm
+      if (interaction.customId === 'nuke_confirm') {
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
+          return interaction.reply({ content: '❌ You do not have permission to manage channels.', ephemeral: true });
+        }
 
-  if (interaction.customId === 'nuke_cancel') {
-    if (interaction.message.deletable) {
-      await interaction.message.delete();
+        try {
+          const channel = interaction.channel;
+          await channel.clone();
+          const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
+          await channel.delete();
+          return interaction.reply({ content: `💥 Channel has been nuked and recreated: ${newChannel}`, ephemeral: true });
+        } catch (err) {
+          console.error('Nuke error:', err);
+          return interaction.reply({ content: '❌ Failed to nuke the channel.', ephemeral: true });
+        }
+      }
+
+      // Nuke cancel
+      if (interaction.customId === 'nuke_cancel') {
+        if (interaction.message.deletable) {
+          await interaction.message.delete().catch(() => {});
+        }
+        return interaction.reply({ content: '❌ Nuke cancelled.', ephemeral: true });
+      }
     }
-    return interaction.reply({ content: '❌ Nuke cancelled.', ephemeral: true });
+  } catch (err) {
+    console.error('Interaction handler error:', err);
+    if (!interaction.replied && !interaction.deferred) {
+      try { await interaction.reply({ content: 'An error occurred while handling this interaction.', ephemeral: true }); } catch {}
+    }
   }
 });
 
