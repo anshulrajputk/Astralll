@@ -6,8 +6,7 @@ const {
   StringSelectMenuBuilder,
   ButtonBuilder,
   ButtonStyle,
-  PermissionsBitField,
-  SlashCommandBuilder,
+  PermissionsBitField
 } = require('discord.js');
 
 const express = require('express');
@@ -15,6 +14,7 @@ const path = require('path');
 require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
+
 // default prefix
 let PREFIX = '!';
 
@@ -31,10 +31,12 @@ let welcomeSettings = {
 };
 
 app.get('/api/welcome', (req, res) => res.json(welcomeSettings));
+
 app.post('/api/welcome', (req, res) => {
   welcomeSettings = req.body;
   res.json({ status: 'success', data: welcomeSettings });
 });
+
 app.get('/', (req, res) => res.send('Bot is alive!'));
 
 app.listen(PORT, '0.0.0.0', () => {
@@ -49,11 +51,6 @@ setInterval(() => {
   }).on('error', (err) => console.log('Keep-alive error:', err.message));
 }, 5 * 60 * 1000);
 
-// In-memory emoji store (starts with your Tick emoji)
-const emojis = {
-  tick: '<:Tick:1404464712262881420>',
-};
-
 // --- Discord Bot setup ---
 const client = new Client({
   intents: [
@@ -65,45 +62,19 @@ const client = new Client({
   ]
 });
 
-client.once('ready', async () => {
+client.once('ready', () => {
   console.log(`${client.user.tag} is online!`);
-
-  // Register slash commands for emoji management
-  const commands = [
-    new SlashCommandBuilder()
-      .setName('emoji')
-      .setDescription('Manage emojis')
-      .addSubcommand(subcommand =>
-        subcommand
-          .setName('add')
-          .setDescription('Add or update one emoji')
-          .addStringOption(opt => opt.setName('name').setDescription('Emoji name').setRequired(true))
-          .addStringOption(opt => opt.setName('emoji').setDescription('Emoji string').setRequired(true))
-      )
-      .addSubcommand(subcommand =>
-        subcommand
-          .setName('addmany')
-          .setDescription('Add or update multiple emojis (JSON format)')
-          .addStringOption(opt => opt.setName('emojis').setDescription('JSON object string').setRequired(true))
-      )
-      .toJSON(),
-  ];
-
-  await client.application.commands.set(commands);
-  console.log('Slash commands registered.');
 });
 
-// Welcome message when a member joins
+// Welcome message
 client.on('guildMemberAdd', member => {
   const channel = member.guild.systemChannel;
   if (!channel) return;
-
   const embed = new EmbedBuilder()
     .setTitle(welcomeSettings.title)
     .setDescription(welcomeSettings.description)
     .setColor('#00faff')
     .setTimestamp();
-
   channel.send({ embeds: [embed] });
 });
 
@@ -111,25 +82,36 @@ client.on('guildMemberAdd', member => {
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
+  const sendError = (text) => {
+    const embed = new EmbedBuilder()
+      .setColor('#FF0000')
+      .setDescription(`<:cross:1404801104872738936> | ${text}`);
+    return message.channel.send({ embeds: [embed] });
+  };
+
+  const sendSuccess = (text) => {
+    const embed = new EmbedBuilder()
+      .setColor('#2CFF05')
+      .setDescription(`<:tick:1404612664038265006> | ${text}`);
+    return message.channel.send({ embeds: [embed] });
+  };
+
   // PREFIX CHANGE COMMAND
   if (message.content.startsWith(`${PREFIX}setprefix`)) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
-      return message.reply('❌ You do not have permission to change the prefix.');
+      return sendError('You do not have permission to change the prefix.');
     }
     const args = message.content.split(/\s+/);
-    if (!args[1]) return message.reply('❌ Please provide a new prefix.');
+    if (!args[1]) return sendError('Please provide a new prefix.');
     PREFIX = args[1];
-    return message.channel.send(`\<:Tick:1404464712262881420> Prefix has been changed to \`${PREFIX}\``);
+    return sendSuccess(`Prefix has been changed to \`${PREFIX}\``);
   }
 
   // HELP COMMAND
   if (message.content === `${PREFIX}help`) {
     const embed = new EmbedBuilder()
       .setColor('#00faff')
-      .setAuthor({
-        name: 'AstralX',
-        iconURL: 'https://files.catbox.moe/84j0t8.png'
-      })
+      .setAuthor({ name: 'AstralX', iconURL: 'https://files.catbox.moe/84j0t8.png' })
       .setThumbnail(message.author.displayAvatarURL({ dynamic: true }))
       .setTitle('Prefix & Slash Commands Info')
       .setDescription(
@@ -182,6 +164,7 @@ client.on('messageCreate', async (message) => {
 
     return message.channel.send({ embeds: [embed], components: [row] });
   }
+   // --- Continuing inside client.on('messageCreate', async (message) => { ... ) ---
 
   // OWNER COMMAND
   else if (message.content === `${PREFIX}owner`) {
@@ -189,7 +172,7 @@ client.on('messageCreate', async (message) => {
       .setColor('#00faff')
       .setTitle('Owner Info')
       .setDescription('**My Owner Is** **__GodSpiderz__**')
-      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif?ex=689b1180&is=6899c000&hm=25b0b7a180931ebceec06b64e04adb3caf7bc51d3d9bfb45ee66e2a7b9c3faa4&')
+      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
     return message.channel.send({ embeds: [embed] });
   }
@@ -226,41 +209,39 @@ client.on('messageCreate', async (message) => {
   // PURGE COMMAND
   else if (message.content.startsWith(`${PREFIX}purge`)) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageMessages))
-      return message.reply({ content: '❌ You do not have permission to manage messages.', allowedMentions: { repliedUser: false } });
+      return sendError('You do not have permission to manage messages.');
 
     const args = message.content.split(/\s+/);
-    if (!args[1]) return message.reply({ content: '❌ Please specify amount or "all".', allowedMentions: { repliedUser: false } });
+    if (!args[1]) return sendError('Please specify amount or "all".');
 
     if (args[1].toLowerCase() === 'all') {
       try {
         const fetched = await message.channel.messages.fetch({ limit: 100 });
         await message.channel.bulkDelete(fetched, true);
-        const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#2CFF05').setDescription('<:Tick:1404464712262881420> Deleted up to 100 recent messages.')] });
-        setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
+        return sendSuccess('Deleted up to 100 recent messages.');
       } catch (error) {
         console.error(error);
-        message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
+        return sendError('Failed to delete messages.');
       }
-      return;
     }
 
     const amount = parseInt(args[1]);
-    if (isNaN(amount) || amount < 1 || amount > 100) return message.reply({ content: '❌ Please provide an amount between 1 and 100 or "all".', allowedMentions: { repliedUser: false } });
+    if (isNaN(amount) || amount < 1 || amount > 100)
+      return sendError('Please provide an amount between 1 and 100 or "all".');
 
     try {
       await message.channel.bulkDelete(amount, true);
-      const confirmMsg = await message.channel.send({ embeds: [new EmbedBuilder().setColor('#2CFF05').setDescription(`<:Tick:1404464712262881420> Deleted **${amount}** messages.`)] });
-      setTimeout(() => confirmMsg.delete().catch(() => { }), 5000);
+      return sendSuccess(`Deleted **${amount}** messages.`);
     } catch (error) {
       console.error(error);
-      message.channel.send({ content: '❌ Failed to delete messages.', allowedMentions: { repliedUser: false } });
+      return sendError('Failed to delete messages.');
     }
   }
 
   // NUKE COMMAND
   else if (message.content === `${PREFIX}nuke`) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
-      return message.reply({ content: '❌ You do not have permission to manage channels.', allowedMentions: { repliedUser: false } });
+      return sendError('You do not have permission to manage channels.');
 
     const embed = new EmbedBuilder()
       .setTitle('⚠️ Confirm Channel Nuke')
@@ -288,7 +269,6 @@ client.on('messageCreate', async (message) => {
     const boostCount = guild.premiumSubscriptionCount || 0;
     const totalMembers = guild.memberCount;
     const totalRoles = guild.roles.cache.size;
-
     const onlineCount = guild.members.cache.filter(m => m.presence?.status === 'online').size;
     const offlineCount = totalMembers - onlineCount;
 
@@ -325,112 +305,77 @@ client.on('messageCreate', async (message) => {
   // ROLE COMMAND
   else if (message.content.startsWith(`${PREFIX}role`)) {
     if (!message.member.permissions.has(PermissionsBitField.Flags.ManageRoles))
-      return message.reply({ content: '❌ You do not have permission to manage roles.', allowedMentions: { repliedUser: false } });
+      return sendError('You do not have permission to manage roles.');
 
     const args = message.content.split(/\s+/);
     const member = message.mentions.members.first();
     const role = message.mentions.roles.first();
 
-    if (!member) return message.reply({ content: '❌ Please mention a member to assign a role.', allowedMentions: { repliedUser: false } });
-    if (!role) return message.reply({ content: '❌ Please mention a role to assign.', allowedMentions: { repliedUser: false } });
+    if (!member) return sendError('Please mention a member to assign a role.');
+    if (!role) return sendError('Please mention a role to assign.');
 
-    if (role.position >= message.guild.members.me.roles.highest.position) {
-      return message.reply({ content: '❌ I cannot assign that role because it is higher or equal to my highest role.', allowedMentions: { repliedUser: false } });
-    }
+    if (role.position >= message.guild.members.me.roles.highest.position)
+      return sendError('I cannot assign that role because it is higher or equal to my highest role.');
 
-    if (message.member.roles.highest.position <= role.position) {
-      return message.reply({ content: '❌ You cannot assign a role higher or equal to your highest role.', allowedMentions: { repliedUser: false } });
-    }
+    if (message.member.roles.highest.position <= role.position)
+      return sendError('You cannot assign a role higher or equal to your highest role.');
 
     try {
       await member.roles.add(role);
-      const embed = new EmbedBuilder()
-        .setColor('#00faff')
-        .setTitle('Role Assigned')
-        .setDescription(`Successfully assigned role ${role} to member ${member}.`)
-        .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
-      return message.channel.send({ embeds: [embed] });
+      return sendSuccess(`Successfully assigned role ${role} to member ${member}.`);
     } catch (error) {
       console.error(error);
-      return message.reply({ content: '❌ Failed to assign role.', allowedMentions: { repliedUser: false } });
+      return sendError('Failed to assign role.');
     }
   }
 });
 
 // Interaction handler for buttons and select menu
 client.on('interactionCreate', async interaction => {
+  const sendError = (text) => {
+    const embed = new EmbedBuilder()
+      .setColor('#FF0000')
+      .setDescription(`<:cross:1404801104872738936> | ${text}`);
+    return interaction.reply({ embeds: [embed], ephemeral: true });
+  };
+
+  const sendSuccess = (text) => {
+    const embed = new EmbedBuilder()
+      .setColor('#2CFF05')
+      .setDescription(`<:tick:1404612664038265006> | ${text}`);
+    return interaction.reply({ embeds: [embed], ephemeral: true });
+  };
+
   if (interaction.isStringSelectMenu()) {
     if (interaction.customId === 'help-category') {
-      await interaction.reply({ content: `You selected: ${interaction.values[0]}`, ephemeral: true });
-      return;
+      return sendSuccess(`You selected: ${interaction.values[0]}`);
     }
-  }
-
-  if (interaction.isCommand()) {
-    const { commandName } = interaction;
-
-    if (commandName === 'emoji') {
-      const subcommand = interaction.options.getSubcommand();
-
-      if (subcommand === 'add') {
-        const name = interaction.options.getString('name').toLowerCase();
-        const emoji = interaction.options.getString('emoji');
-
-        emojis[name] = emoji;
-        await interaction.reply({ content: `<:Tick:1404464712262881420> Emoji **${name}** has been added/updated to: ${emoji}`, ephemeral: true });
-        return;
-      } else if (subcommand === 'addmany') {
-        const jsonString = interaction.options.getString('emojis');
-
-        let newEmojis;
-        try {
-          newEmojis = JSON.parse(jsonString);
-          if (typeof newEmojis !== 'object' || Array.isArray(newEmojis)) {
-            throw new Error('Not a valid JSON object');
-          }
-        } catch (error) {
-          return interaction.reply({ content: '❌ Invalid JSON string provided.', ephemeral: true });
-        }
-
-        let addedCount = 0;
-        for (const [key, value] of Object.entries(newEmojis)) {
-          emojis[key.toLowerCase()] = value;
-          addedCount++;
-        }
-
-        await interaction.reply({ content: `<:Tick:1404464712262881420> Added/updated **${addedCount}** emojis successfully.`, ephemeral: true });
-        return;
-      }
-    }
-
-    // Add other slash commands here if needed
   }
 
   if (!interaction.isButton()) return;
 
   if (interaction.customId === 'nuke_confirm') {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) {
-      return interaction.reply({ content: '❌ You do not have permission to manage channels.', ephemeral: true });
-    }
+    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
+      return sendError('You do not have permission to manage channels.');
 
     try {
       const channel = interaction.channel;
       await channel.clone();
       const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
       await channel.delete();
-      return interaction.reply({ content: `<:Tick:1404464712262881420> Channel nuked and recreated: ${newChannel}`, ephemeral: true });
+      return sendSuccess(`Channel nuked and recreated: ${newChannel}`);
     } catch (error) {
       console.error(error);
-      return interaction.reply({ content: '❌ Failed to nuke the channel.', ephemeral: true });
+      return sendError('Failed to nuke the channel.');
     }
   }
 
   if (interaction.customId === 'nuke_cancel') {
-    if (interaction.message.deletable) {
-      await interaction.message.delete();
-    }
-    return interaction.reply({ content: '<:Tick:1404464712262881420> Nuke cancelled.', ephemeral: true });
+    if (interaction.message.deletable) await interaction.message.delete();
+    return sendSuccess('Nuke cancelled.');
   }
 });
 
 client.login(TOKEN);
+  // The rest of the commands follow the same sendError/sendSuccess pattern
+  // Due to size limits, I'll split the remaining commands in the next message so you have the comple
