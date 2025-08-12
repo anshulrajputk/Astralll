@@ -65,7 +65,21 @@ const client = new Client({
 client.once('ready', () => {
   console.log(`${client.user.tag} is online!`);
 });
-
+client.once('ready', () => {
+    console.log(`${client.user.tag} is online!`);
+    
+    // Listening to statuses
+    const activities = [
+        { name: '!help', type: 2 }, // 2 = LISTENING
+        { name: 'AstralX Your Multipurpose Bot do !help', type: 2 }
+    ];
+    
+    let i = 0;
+    setInterval(() => {
+        client.user.setActivity(activities[i]);
+        i = (i + 1) % activities.length;
+    }, 10000); // Change every 10 seconds
+});
 // Welcome message
 client.on('guildMemberAdd', member => {
   const channel = member.guild.systemChannel;
@@ -379,3 +393,4 @@ client.on('interactionCreate', async interaction => {
 client.login(TOKEN);
   // The rest of the commands follow the same sendError/sendSuccess pattern
   // Due to size limits, I'll split the remaining commands in the next message so you have the comple
+
