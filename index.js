@@ -15,9 +15,6 @@ require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
 
-// Require welcome command module
-const welcomeCmd = require('./commands/welcome');
-
 // Music command
 const musicCommand = require('./commands/music'); // single music file
 
@@ -412,3 +409,4 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(TOKEN);
+
