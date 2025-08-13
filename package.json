@@ -28,3 +28,4 @@
     "minecraft-server-util": "^5.4.4"
   }
 }
+npm install discord.js @discordjs/voice @discordjs/opus ytdl-core ffmpeg-static
