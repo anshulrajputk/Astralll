@@ -25,7 +25,10 @@
     "discord.js": "^14.11.0",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "minecraft-server-util": "^5.4.4"
+    "minecraft-server-util": "^5.4.4",
+    "@discordjs/voice": "^0.15.0",
+    "@discordjs/opus": "^0.8.0",
+    "ytdl-core": "^4.11.0",
+    "ffmpeg-static": "^5.1.0"
   }
 }
-npm install discord.js @discordjs/voice @discordjs/opus ytdl-core ffmpeg-static
