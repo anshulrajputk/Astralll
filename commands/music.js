@@ -5,10 +5,7 @@ const {
   EmbedBuilder, 
   ActionRowBuilder, 
   ButtonBuilder, 
-  ButtonStyle,
-  SlashCommandBuilder,
-  Routes,
-  REST
+  ButtonStyle
 } = require('discord.js');
 const { 
   joinVoiceChannel, 
@@ -46,7 +43,7 @@ client.once('ready', () => {
   console.log(`${client.user.tag} is online!`);
 });
 
-// --- Music Command ---
+// --- Message Handler ---
 client.on('messageCreate', async message => {
   if (message.author.bot) return;
   const PREFIX = '!';
@@ -55,43 +52,50 @@ client.on('messageCreate', async message => {
   const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
   const command = args.shift().toLowerCase();
 
-  const voiceChannel = message.member.voice.channel;
-  if (!voiceChannel) return message.reply(`${crossIcon} | You must be in a voice channel!`);
-
   let serverQueue = queue.get(message.guild.id);
-  if (!serverQueue) {
-    serverQueue = {
-      voiceChannel,
-      player: createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } }),
-      songs: [],
-      currentSong: null,
-      message: null,
-      paused: false
-    };
-    queue.set(message.guild.id, serverQueue);
 
-    const connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: message.guild.id,
-      adapterCreator: message.guild.voiceAdapterCreator
-    });
-    serverQueue.connection = connection;
-    connection.subscribe(serverQueue.player);
-  }
-
+  // --- PLAY ---
   if (command === 'play') {
+    const voiceChannel = message.member.voice.channel;
+    if (!voiceChannel) return message.reply(`${crossIcon} | You must be in a voice channel!`);
+
+    if (!serverQueue) {
+      serverQueue = {
+        voiceChannel,
+        player: createAudioPlayer({ behaviors: { noSubscriber: NoSubscriberBehavior.Pause } }),
+        connection: null,
+        songs: [],
+        currentSong: null,
+        message: null,
+        paused: false
+      };
+      queue.set(message.guild.id, serverQueue);
+
+      const connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: message.guild.id,
+        adapterCreator: message.guild.voiceAdapterCreator
+      });
+      serverQueue.connection = connection;
+      connection.subscribe(serverQueue.player);
+    }
+
     if (!args[0]) return message.reply(`${crossIcon} | Provide a song name or URL!`);
     const search = args.join(' ');
     let songInfo;
 
-    if (ytdl.validateURL(search)) {
-      const info = await ytdl.getInfo(search);
-      songInfo = { title: info.videoDetails.title, url: info.videoDetails.video_url, duration: parseInt(info.videoDetails.lengthSeconds) };
-    } else {
-      const results = await yts(search);
-      if (!results || !results.videos.length) return message.reply(`${crossIcon} | No results found!`);
-      const video = results.videos[0];
-      songInfo = { title: video.title, url: video.url, duration: video.seconds };
+    try {
+      if (ytdl.validateURL(search)) {
+        const info = await ytdl.getInfo(search);
+        songInfo = { title: info.videoDetails.title, url: info.videoDetails.video_url, duration: parseInt(info.videoDetails.lengthSeconds) };
+      } else {
+        const results = await yts(search);
+        if (!results || !results.videos.length) return message.reply(`${crossIcon} | No results found!`);
+        const video = results.videos[0];
+        songInfo = { title: video.title, url: video.url, duration: video.seconds };
+      }
+    } catch (err) {
+      return message.reply(`${crossIcon} | Error fetching the song: ${err.message}`);
     }
 
     serverQueue.songs.push(songInfo);
@@ -99,23 +103,30 @@ client.on('messageCreate', async message => {
     else message.channel.send(`${tickIcon} | Added **${songInfo.title}** to the queue.`);
   }
 
+  // --- SKIP ---
   if (command === 'skip') {
-    if (!serverQueue.currentSong) return message.reply(`${crossIcon} | No song is playing.`);
+    const voiceChannel = message.member.voice.channel;
+    if (!voiceChannel) return message.reply(`${crossIcon} | You must be in a voice channel!`);
+    if (!serverQueue || !serverQueue.currentSong) return message.reply(`${crossIcon} | No song is playing.`);
     serverQueue.player.stop();
     message.channel.send(`${tickIcon} | Skipped the current song.`);
   }
 
+  // --- STOP ---
   if (command === 'stop') {
-    if (!serverQueue.currentSong) return message.reply(`${crossIcon} | No song is playing.`);
+    const voiceChannel = message.member.voice.channel;
+    if (!voiceChannel) return message.reply(`${crossIcon} | You must be in a voice channel!`);
+    if (!serverQueue || !serverQueue.currentSong) return message.reply(`${crossIcon} | No song is playing.`);
     serverQueue.songs = [];
     serverQueue.player.stop();
-    serverQueue.connection.destroy();
+    if (serverQueue.connection) serverQueue.connection.destroy();
     queue.delete(message.guild.id);
     message.channel.send(`${crossIcon} | Stopped the music and left the channel.`);
   }
 
+  // --- QUEUE ---
   if (command === 'queue') {
-    if (!serverQueue.currentSong && serverQueue.songs.length === 0) return message.reply(`${crossIcon} | The queue is empty.`);
+    if (!serverQueue || (!serverQueue.currentSong && serverQueue.songs.length === 0)) return message.reply(`${crossIcon} | The queue is empty.`);
     const upcoming = serverQueue.songs.map((s, i) => `${i+1}. [${s.title}](${s.url}) - \`${formatTime(s.duration)}\``).join('\n') || 'No upcoming songs';
     const embed = new EmbedBuilder()
       .setColor('#00faff')
@@ -132,13 +143,21 @@ async function playSong(guildId, textChannel) {
 
   const song = serverQueue.songs.shift();
   if (!song) {
-    serverQueue.connection.destroy();
+    if (serverQueue.connection) serverQueue.connection.destroy();
     queue.delete(guildId);
     return textChannel.send(`${crossIcon} | Queue ended. Leaving the voice channel.`);
   }
 
   serverQueue.currentSong = song;
-  const resource = createAudioResource(ytdl(song.url, { filter: 'audioonly' }));
+
+  let resource;
+  try {
+    resource = createAudioResource(ytdl(song.url, { filter: 'audioonly', highWaterMark: 1<<25 }));
+  } catch (err) {
+    console.error(err);
+    return textChannel.send(`${crossIcon} | Failed to play song: ${err.message}`);
+  }
+
   serverQueue.player.play(resource);
 
   const upcoming = serverQueue.songs.map((s,i)=>`${i+1}. ${s.title}`).join('\n') || 'No upcoming songs';
@@ -160,11 +179,27 @@ async function playSong(guildId, textChannel) {
     if (!i.member.voice.channel) return i.reply({ content: `${crossIcon} | You must be in a voice channel!`, ephemeral: true });
 
     if (i.customId === 'pause_resume') {
-      if (serverQueue.paused) { serverQueue.player.unpause(); serverQueue.paused=false; i.update({ content:`${tickIcon} | Resumed`, embeds:[embed], components:[row]}); }
-      else { serverQueue.player.pause(); serverQueue.paused=true; i.update({ content:`${crossIcon} | Paused`, embeds:[embed], components:[row]}); }
+      if (serverQueue.paused) { 
+        serverQueue.player.unpause(); 
+        serverQueue.paused=false; 
+        i.update({ content:`${tickIcon} | Resumed`, embeds:[embed], components:[row] }); 
+      } else { 
+        serverQueue.player.pause(); 
+        serverQueue.paused=true; 
+        i.update({ content:`${crossIcon} | Paused`, embeds:[embed], components:[row] }); 
+      }
     }
-    if (i.customId==='skip'){serverQueue.player.stop(); i.update({ content:`${tickIcon} | Skipped`, embeds:[embed], components:[row]});}
-    if (i.customId==='stop'){serverQueue.songs=[]; serverQueue.player.stop(); serverQueue.connection.destroy(); queue.delete(guildId); i.update({ content:`${crossIcon} | Stopped`, embeds:[embed], components:[]});}
+    if (i.customId==='skip') {
+      serverQueue.player.stop(); 
+      i.update({ content:`${tickIcon} | Skipped`, embeds:[embed], components:[row] });
+    }
+    if (i.customId==='stop') {
+      serverQueue.songs=[]; 
+      serverQueue.player.stop(); 
+      if (serverQueue.connection) serverQueue.connection.destroy(); 
+      queue.delete(guildId); 
+      i.update({ content:`${crossIcon} | Stopped`, embeds:[embed], components:[] });
+    }
   });
 
   let currentSeconds=0;
@@ -176,17 +211,31 @@ async function playSong(guildId, textChannel) {
     serverQueue.message.edit({ embeds:[embed] });
   },5000);
 
-  serverQueue.player.on(AudioPlayerStatus.Idle, ()=>{clearInterval(interval); serverQueue.currentSong=null; playSong(guildId, textChannel);});
-  serverQueue.player.on('error', error=>{console.error(error); clearInterval(interval); serverQueue.currentSong=null; playSong(guildId, textChannel);});
+  serverQueue.player.on(AudioPlayerStatus.Idle, ()=>{
+    clearInterval(interval); 
+    serverQueue.currentSong=null; 
+    playSong(guildId, textChannel);
+  });
+
+  serverQueue.player.on('error', error=>{
+    console.error(error); 
+    clearInterval(interval); 
+    serverQueue.currentSong=null; 
+    playSong(guildId, textChannel);
+  });
 }
 
 // --- Helpers ---
 function createProgressBar(current,total,size=20){
-  const progress=Math.round((current/total)*size);
+  const progress=Math.round(Math.min(current,total)/total*size);
   const empty=size-progress;
   return '▬'.repeat(progress)+'🔘'+'▬'.repeat(empty);
 }
-function formatTime(sec){const minutes=Math.floor(sec/60); const seconds=sec%60; return `${minutes}:${seconds.toString().padStart(2,'0')}`;}
+function formatTime(sec){
+  const minutes=Math.floor(sec/60);
+  const seconds=sec%60; 
+  return `${minutes}:${seconds.toString().padStart(2,'0')}`;
+}
 
 // --- Login ---
 client.login(process.env.TOKEN);
