@@ -18,6 +18,9 @@ const TOKEN = process.env.TOKEN;
 // Require welcome command module
 const welcomeCmd = require('./commands/welcome');
 
+// --- After your other requires ---
+const musicCommand = require('./commands/music'); // single music file
+
 // default prefix
 let PREFIX = '!';
 
@@ -106,6 +109,13 @@ client.on('guildMemberAdd', member => {
 // --- Message commands handler ---
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
+
+  // --- MUSIC COMMAND ---
+else if (message.content.startsWith(`${PREFIX}music`)) {
+  const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
+  args.shift(); // remove the command itself
+  musicCommand.run(client, message, args);
+}
 
   const sendError = (text) => {
     const embed = new EmbedBuilder()
@@ -412,3 +422,4 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(TOKEN);
+
