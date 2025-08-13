@@ -18,7 +18,7 @@ const TOKEN = process.env.TOKEN;
 // Require welcome command module
 const welcomeCmd = require('./commands/welcome');
 
-// --- After your other requires ---
+// Music command
 const musicCommand = require('./commands/music'); // single music file
 
 // default prefix
@@ -71,9 +71,8 @@ const client = new Client({
 client.once('ready', () => {
   console.log(`${client.user.tag} is online!`);
 
-  // Listening to statuses
   const activities = [
-    { name: '!help', type: 2 }, // LISTENING
+    { name: '!help', type: 2 },
     { name: 'AstralX Your Multipurpose Bot do !help', type: 2 }
   ];
 
@@ -84,12 +83,12 @@ client.once('ready', () => {
   }, 10000);
 });
 
-// --- Welcome message on member join using DB ---
+// --- Welcome message on member join ---
 client.on('guildMemberAdd', member => {
   const db = require('./utils/db').loadDB();
   const guildId = member.guild.id;
 
-  if (!db[guildId] || !db[guildId].status) return; // Welcome disabled or not set
+  if (!db[guildId] || !db[guildId].status) return;
 
   const channelId = db[guildId].channel;
   if (!channelId) return;
@@ -107,8 +106,7 @@ client.on('guildMemberAdd', member => {
 });
 
 // --- Message commands handler ---
-
-    if (!message.member.permissions.has(Permisclient.on('messageCreate', async (message) => {
+client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
   const sendError = (text) => {
@@ -128,15 +126,14 @@ client.on('guildMemberAdd', member => {
   // --- MUSIC COMMAND ---
   if (message.content.startsWith(`${PREFIX}music`)) {
     const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
-    args.shift(); // remove the command itself
+    args.shift();
     return musicCommand.run(client, message, args);
   }
 
   // PREFIX CHANGE COMMAND
-  if (message.content.startsWith(`${PREFIX}setprefix`)) { 
-  }sionsBitField.Flags.ManageGuild)) {
+  if (message.content.startsWith(`${PREFIX}setprefix`)) {
+    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild))
       return sendError('You do not have permission to change the prefix.');
-    }
     const args = message.content.split(/\s+/);
     if (!args[1]) return sendError('Please provide a new prefix.');
     PREFIX = args[1];
@@ -177,7 +174,7 @@ client.on('guildMemberAdd', member => {
         `> <:giveaway:1404420200371191828> \`:\` **Giveaway**\n` +
         `> <:ticket:1404420115008851999> \`:\` **Ticket**`
       )
-      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404401022016950313/standard_2.gif')
+      .setImage('https://cdn.discordapp.com/attachments/1400328633788137533/1405141570952626216/standard_2.gif?ex=689dbf90&is=689c6e10&hm=f3c5293051322fe8cf8fdaa7f0a32b5793e4dd8be6afc6839c7112ce250b9468&')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
 
     const row = new ActionRowBuilder().addComponents(
@@ -213,7 +210,7 @@ client.on('guildMemberAdd', member => {
       .setColor('#00faff')
       .setTitle('Owner Info')
       .setDescription('**My Owner Is** **__GodSpiderz__**')
-      .setImage('https://cdn.discordapp.com/attachments/1404284248713592874/1404404916944113754/standard_3.gif')
+      .setImage('https://cdn.discordapp.com/attachments/1400328633788137533/1405142969714999316/standard_3.gif?ex=689dc0de&is=689c6f5e&hm=37bc2ddd83887cc2c600eed16bd7a691a1329cd4c25cd5304cbffe840efa3006&')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
     return message.channel.send({ embeds: [embed] });
   }
@@ -373,10 +370,7 @@ client.on('guildMemberAdd', member => {
 
 // --- Interaction handler ---
 client.on('interactionCreate', async interaction => {
-  // Handle welcome buttons
-  if (interaction.isButton()) {
-    await welcomeCmd.buttons(client, interaction);
-  }
+  if (interaction.isButton()) await welcomeCmd.buttons(client, interaction);
 
   const sendError = (text) => {
     const embed = new EmbedBuilder()
@@ -393,35 +387,28 @@ client.on('interactionCreate', async interaction => {
   };
 
   if (interaction.isStringSelectMenu()) {
-    if (interaction.customId === 'help-category') {
-      return sendSuccess(`You selected: ${interaction.values[0]}`);
-    }
+    if (interaction.customId === 'help-category') return sendSuccess(`You selected: ${interaction.values[0]}`);
   }
 
   if (!interaction.isButton()) return;
 
   if (interaction.customId === 'nuke_confirm') {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
-      return sendError('You do not have permission to manage channels.');
-
+    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) return sendError('You do not have permission.');
     try {
       const channel = interaction.channel;
       await channel.clone();
       const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
       await channel.delete();
       return sendSuccess(`Channel nuked and recreated: ${newChannel}`);
-    } catch (error) {
-      console.error(error);
+    } catch {
       return sendError('Failed to nuke the channel.');
     }
   }
 
   if (interaction.customId === 'nuke_cancel') {
-    if (interaction.message.deletable) await interaction.message.delete
+    if (interaction.message.deletable) await interaction.message.delete();
     return sendSuccess('Nuke cancelled.');
   }
 });
 
 client.login(TOKEN);
-
-
