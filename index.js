@@ -107,15 +107,9 @@ client.on('guildMemberAdd', member => {
 });
 
 // --- Message commands handler ---
-client.on('messageCreate', async (message) => {
-  if (message.author.bot) return;
 
-  // --- MUSIC COMMAND ---
-else if (message.content.startsWith(`${PREFIX}music`)) {
-  const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
-  args.shift(); // remove the command itself
-  musicCommand.run(client, message, args);
-}
+    if (!message.member.permissions.has(Permisclient.on('messageCreate', async (message) => {
+  if (message.author.bot) return;
 
   const sendError = (text) => {
     const embed = new EmbedBuilder()
@@ -131,9 +125,16 @@ else if (message.content.startsWith(`${PREFIX}music`)) {
     return message.channel.send({ embeds: [embed] });
   };
 
+  // --- MUSIC COMMAND ---
+  if (message.content.startsWith(`${PREFIX}music`)) {
+    const args = message.content.slice(PREFIX.length).trim().split(/ +/g);
+    args.shift(); // remove the command itself
+    return musicCommand.run(client, message, args);
+  }
+
   // PREFIX CHANGE COMMAND
-  if (message.content.startsWith(`${PREFIX}setprefix`)) {
-    if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild)) {
+  if (message.content.startsWith(`${PREFIX}setprefix`)) { 
+  }sionsBitField.Flags.ManageGuild)) {
       return sendError('You do not have permission to change the prefix.');
     }
     const args = message.content.split(/\s+/);
@@ -422,4 +423,5 @@ client.on('interactionCreate', async interaction => {
 });
 
 client.login(TOKEN);
+
 
