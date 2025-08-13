@@ -1,15 +1,25 @@
 const fs = require('fs');
-const dbFile = './welcomeData.json';
+const path = './welcomeData.json'; // JSON file path
 
+// Load database
 function loadDB() {
-  if (!fs.existsSync(dbFile)) {
-    fs.writeFileSync(dbFile, JSON.stringify({}));
+  try {
+    if (!fs.existsSync(path)) fs.writeFileSync(path, '{}'); // create file if missing
+    const data = fs.readFileSync(path, 'utf8');
+    return JSON.parse(data);
+  } catch (err) {
+    console.error('Error loading DB:', err);
+    return {};
   }
-  return JSON.parse(fs.readFileSync(dbFile));
 }
 
+// Save database
 function saveDB(data) {
-  fs.writeFileSync(dbFile, JSON.stringify(data, null, 2));
+  try {
+    fs.writeFileSync(path, JSON.stringify(data, null, 2));
+  } catch (err) {
+    console.error('Error saving DB:', err);
+  }
 }
 
 module.exports = { loadDB, saveDB };
