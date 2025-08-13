@@ -15,10 +15,12 @@
     "status",
     "monitor"
   ],
-  "author": "",
+  "author": "Anshul Rajput",
   "license": "MIT",
+  "engines": {
+    "node": "18.x"
+  },
   "dependencies": {
-    "blk-minecraft-status-bot": "file:",
     "canvas": "^3.1.0",
     "chalk": "^4.1.2",
     "chart.js": "^4.4.9",
