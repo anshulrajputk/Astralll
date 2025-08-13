@@ -15,6 +15,9 @@ require('dotenv').config();
 
 const TOKEN = process.env.TOKEN;
 
+// Require welcome command module
+const welcomeCmd = require('./commands/welcome');
+
 // default prefix
 let PREFIX = '!';
 
@@ -64,35 +67,43 @@ const client = new Client({
 
 client.once('ready', () => {
   console.log(`${client.user.tag} is online!`);
+
+  // Listening to statuses
+  const activities = [
+    { name: '!help', type: 2 }, // LISTENING
+    { name: 'AstralX Your Multipurpose Bot do !help', type: 2 }
+  ];
+
+  let i = 0;
+  setInterval(() => {
+    client.user.setActivity(activities[i]);
+    i = (i + 1) % activities.length;
+  }, 10000);
 });
-client.once('ready', () => {
-    console.log(`${client.user.tag} is online!`);
-    
-    // Listening to statuses
-    const activities = [
-        { name: '!help', type: 2 }, // 2 = LISTENING
-        { name: 'AstralX Your Multipurpose Bot do !help', type: 2 }
-    ];
-    
-    let i = 0;
-    setInterval(() => {
-        client.user.setActivity(activities[i]);
-        i = (i + 1) % activities.length;
-    }, 10000); // Change every 10 seconds
-});
-// Welcome message
+
+// --- Welcome message on member join using DB ---
 client.on('guildMemberAdd', member => {
-  const channel = member.guild.systemChannel;
+  const db = require('./utils/db').loadDB();
+  const guildId = member.guild.id;
+
+  if (!db[guildId] || !db[guildId].status) return; // Welcome disabled or not set
+
+  const channelId = db[guildId].channel;
+  if (!channelId) return;
+
+  const channel = member.guild.channels.cache.get(channelId);
   if (!channel) return;
+
   const embed = new EmbedBuilder()
-    .setTitle(welcomeSettings.title)
-    .setDescription(welcomeSettings.description)
+    .setTitle(db[guildId].title || 'Welcome!')
+    .setDescription(db[guildId].description || `Glad to have you here, ${member.user}! Enjoy your stay!`)
     .setColor('#00faff')
     .setTimestamp();
+
   channel.send({ embeds: [embed] });
 });
 
-// Message commands handler
+// --- Message commands handler ---
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
 
@@ -119,6 +130,12 @@ client.on('messageCreate', async (message) => {
     if (!args[1]) return sendError('Please provide a new prefix.');
     PREFIX = args[1];
     return sendSuccess(`Prefix has been changed to \`${PREFIX}\``);
+  }
+
+  // WELCOME SETUP COMMAND
+  if (message.content.startsWith(`${PREFIX}setup welcome`)) {
+    await welcomeCmd.run(client, message);
+    return;
   }
 
   // HELP COMMAND
@@ -178,7 +195,6 @@ client.on('messageCreate', async (message) => {
 
     return message.channel.send({ embeds: [embed], components: [row] });
   }
-   // --- Continuing inside client.on('messageCreate', async (message) => { ... ) ---
 
   // OWNER COMMAND
   else if (message.content === `${PREFIX}owner`) {
@@ -344,8 +360,13 @@ client.on('messageCreate', async (message) => {
   }
 });
 
-// Interaction handler for buttons and select menu
+// --- Interaction handler ---
 client.on('interactionCreate', async interaction => {
+  // Handle welcome buttons
+  if (interaction.isButton()) {
+    await welcomeCmd.buttons(client, interaction);
+  }
+
   const sendError = (text) => {
     const embed = new EmbedBuilder()
       .setColor('#FF0000')
@@ -385,12 +406,9 @@ client.on('interactionCreate', async interaction => {
   }
 
   if (interaction.customId === 'nuke_cancel') {
-    if (interaction.message.deletable) await interaction.message.delete();
+    if (interaction.message.deletable) await interaction.message.delete
     return sendSuccess('Nuke cancelled.');
   }
 });
 
 client.login(TOKEN);
-  // The rest of the commands follow the same sendError/sendSuccess pattern
-  // Due to size limits, I'll split the remaining commands in the next message so you have the comple
-
