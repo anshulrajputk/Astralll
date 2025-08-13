@@ -28,18 +28,6 @@ const PORT = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'dashboard')));
 app.use(express.json());
 
-let welcomeSettings = {
-  title: 'Welcome to the server!',
-  description: 'Have a great time here!',
-};
-
-app.get('/api/welcome', (req, res) => res.json(welcomeSettings));
-
-app.post('/api/welcome', (req, res) => {
-  welcomeSettings = req.body;
-  res.json({ status: 'success', data: welcomeSettings });
-});
-
 app.get('/', (req, res) => res.send('Bot is alive!'));
 
 app.listen(PORT, '0.0.0.0', () => {
@@ -80,28 +68,6 @@ client.once('ready', () => {
   }, 10000);
 });
 
-// --- Welcome message on member join ---
-client.on('guildMemberAdd', member => {
-  const db = require('./utils/db').loadDB();
-  const guildId = member.guild.id;
-
-  if (!db[guildId] || !db[guildId].status) return;
-
-  const channelId = db[guildId].channel;
-  if (!channelId) return;
-
-  const channel = member.guild.channels.cache.get(channelId);
-  if (!channel) return;
-
-  const embed = new EmbedBuilder()
-    .setTitle(db[guildId].title || 'Welcome!')
-    .setDescription(db[guildId].description || `Glad to have you here, ${member.user}! Enjoy your stay!`)
-    .setColor('#00faff')
-    .setTimestamp();
-
-  channel.send({ embeds: [embed] });
-});
-
 // --- Message commands handler ---
 client.on('messageCreate', async (message) => {
   if (message.author.bot) return;
@@ -137,12 +103,6 @@ client.on('messageCreate', async (message) => {
     return sendSuccess(`Prefix has been changed to \`${PREFIX}\``);
   }
 
-  // WELCOME SETUP COMMAND
-  if (message.content.startsWith(`${PREFIX}setup welcome`)) {
-    await welcomeCmd.run(client, message);
-    return;
-  }
-
   // HELP COMMAND
   if (message.content === `${PREFIX}help`) {
     const embed = new EmbedBuilder()
@@ -156,18 +116,15 @@ client.on('messageCreate', async (message) => {
         `<:head:1404441425453514814> **__My Commands:__**\n` +
         `> <:antinuke:1404440300273008703> \`:\` **Antinuke**\n` +
         `> <:automod:1404441015250849915> \`:\` **Automod**\n` +
-        `> <:utility:1404443195181629585> \`:\` **Config**\n` +
+        `> <:utility:1404441956037165147> \`:\` **Utility**\n` +
         `> <:extra:1404442477070651502> \`:\` **Extra**\n` +
         `> <:dumb:1404442563422851163> \`:\` **Fun**\n` +
         `> <:info:1404442532602970203> \`:\` **Information**\n` +
         `> <:moderation:1404442504845332520> \`:\` **Moderation**\n` +
         `> <:music:1404443059999080449> \`:\` **Music**\n` +
         `> <:playlist:1404442968840081470> \`:\` **Playlists**\n` +
-        `> <:autorole:1404442940243181668> \`:\` **Profile**\n` +
-        `> <:autorole:1404442940243181668> \`:\` **Role**\n` +
-        `> <:utility:1404441956037165147> \`:\` **Utility**\n` +
+        `> <:autorole:1404442940243181668> \`:\` **Profile/Role**\n` +
         `> <:volup:1404443196519612559> \`:\` **Voice**\n` +
-        `> <:welcome:1404443195856650281> \`:\` **Welcome**\n` +
         `> <:giveaway:1404420200371191828> \`:\` **Giveaway**\n` +
         `> <:ticket:1404420115008851999> \`:\` **Ticket**`
       )
@@ -192,7 +149,6 @@ client.on('messageCreate', async (message) => {
           { label: 'Role', value: 'role', emoji: '<:autorole:1368545900917424259>' },
           { label: 'Utility', value: 'utility', emoji: '<:utility:1369525259098656809>' },
           { label: 'Voice', value: 'voice', emoji: '<:volup:1369525408353222767>' },
-          { label: 'Welcome', value: 'welcome', emoji: '<:welcome:1369525441135771669>' },
           { label: 'Giveaway', value: 'giveaways', emoji: '<:giveaway:1404420200371191828>' },
           { label: 'Ticket', value: 'ticket', emoji: '<:ticket:1404420115008851999>' }
         ])
@@ -207,7 +163,7 @@ client.on('messageCreate', async (message) => {
       .setColor('#00faff')
       .setTitle('Owner Info')
       .setDescription('**My Owner Is** **__GodSpiderz__**')
-      .setImage('https://cdn.discordapp.com/attachments/1400328633788137533/1405142969714999316/standard_3.gif?ex=689dc0de&is=689c6f5e&hm=37bc2ddd83887cc2c600eed16bd7a691a1329cd4c25cd5304cbffe840efa3006&')
+      .setImage('https://cdn.discordapp.com/attachments/1400328633788137533/1405141516451713126/standard_3.gif?ex=689dbf83&is=689c6e03&hm=96944589f2df7b52b8802a1e901dc9b38545d136f15aebc890ba2d58ab956f55&')
       .setFooter({ text: 'AstralX', iconURL: message.author.displayAvatarURL({ dynamic: true }) });
     return message.channel.send({ embeds: [embed] });
   }
@@ -367,8 +323,6 @@ client.on('messageCreate', async (message) => {
 
 // --- Interaction handler ---
 client.on('interactionCreate', async interaction => {
-  if (interaction.isButton()) await welcomeCmd.buttons(client, interaction);
-
   const sendError = (text) => {
     const embed = new EmbedBuilder()
       .setColor('#FF0000')
@@ -389,24 +343,10 @@ client.on('interactionCreate', async interaction => {
 
   if (!interaction.isButton()) return;
 
-  if (interaction.customId === 'nuke_confirm') {
-    if (!interaction.member.permissions.has(PermissionsBitField.Flags.ManageChannels)) return sendError('You do not have permission.');
-    try {
-      const channel = interaction.channel;
-      await channel.clone();
-      const newChannel = channel.guild.channels.cache.find(c => c.name === channel.name && c.id !== channel.id);
-      await channel.delete();
-      return sendSuccess(`Channel nuked and recreated: ${newChannel}`);
-    } catch {
-      return sendError('Failed to nuke the channel.');
-    }
-  }
-
-  if (interaction.customId === 'nuke_cancel') {
+if (interaction.customId === 'nuke_cancel') {
     if (interaction.message.deletable) await interaction.message.delete();
     return sendSuccess('Nuke cancelled.');
   }
 });
 
 client.login(TOKEN);
-
